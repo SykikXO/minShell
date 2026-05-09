@@ -1,114 +1,208 @@
+import Quickshell.Bluetooth
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import "../"
 
 KeyboardWindow {
-  id: wifiWindow
+  id: btWindow
   visible: true
   popupWidth: 480
   popupHeight: 560
 
-  // ── Backend ──
-  WifiBackend { id: wifi }
-
   // ── State ──
-  property bool passwordMode: false
-  property string pendingSsid: ""
+  property var adapter: Bluetooth.defaultAdapter
+  property bool hideOnConnect: false
+  property string recentAddress: ""
 
   // ── Derived state ──
+  property var sortedDevices: {
+    var devs = Bluetooth.devices.values.slice()
+    devs.sort((a, b) => {
+      var scoreA = 0
+      if (a.connected) scoreA += 1000
+      if (a.trusted) scoreA += 100
+      if (a.paired) scoreA += 10
+
+      var scoreB = 0
+      if (b.connected) scoreB += 1000
+      if (b.trusted) scoreB += 100
+      if (b.paired) scoreB += 10
+
+      if (scoreA !== scoreB) return scoreB - scoreA
+      return (a.name || a.address || "").localeCompare(b.name || b.address || "")
+    })
+    return devs
+  }
+
+  property var connectedDevice: {
+    var devs = Bluetooth.devices.values
+    for (var i = 0; i < devs.length; i++) {
+      if (devs[i].connected) return devs[i]
+    }
+    return null
+  }
+
   property color headerColor: {
-    if (!wifi.powered) return Theme.red
-    if (wifi.connected) return Theme.green
+    if (!adapter || !adapter.enabled) return Theme.red
+    if (connectedDevice) return Theme.green
     return Theme.accent
   }
 
   // ── Icon helpers ──
-  function signalIcon(level) {
-    if (level >= 80) return "wifi"
-    if (level >= 60) return "network_wifi_3_bar"
-    if (level >= 40) return "network_wifi_2_bar"
-    if (level >= 20) return "network_wifi_1_bar"
-    return "signal_wifi_0_bar"
+  function deviceIcon(dev) {
+    if (!dev) return "bluetooth_disabled"
+    var n = (dev.name || "").toLowerCase()
+    if (n.indexOf("headphone") >= 0 || n.indexOf("airpod") >= 0 || n.indexOf("buds") >= 0 || n.indexOf("earphone") >= 0)
+      return "headphones"
+    if (n.indexOf("keyboard") >= 0 || n.indexOf("keychron") >= 0)
+      return "keyboard"
+    if (n.indexOf("mouse") >= 0 || n.indexOf("trackpad") >= 0)
+      return "mouse"
+    if (n.indexOf("phone") >= 0 || n.indexOf("pixel") >= 0 || n.indexOf("iphone") >= 0 || n.indexOf("galaxy") >= 0 || n.indexOf("oneplus") >= 0 || n.indexOf("redmi") >= 0 || n.indexOf("poco") >= 0)
+      return "smartphone"
+    if (n.indexOf("speaker") >= 0 || n.indexOf("soundbar") >= 0)
+      return "speaker"
+    if (n.indexOf("watch") >= 0 || n.indexOf("band") >= 0)
+      return "watch"
+    if (n.indexOf("tv") >= 0 || n.indexOf("monitor") >= 0 || n.indexOf("display") >= 0)
+      return "tv"
+    if (n.indexOf("controller") >= 0 || n.indexOf("gamepad") >= 0 || n.indexOf("joystick") >= 0)
+      return "videogame_asset"
+    if (n.indexOf("laptop") >= 0)
+      return "laptop_mac"
+    return "bluetooth"
   }
 
-  function securityIcon(sec) {
-    if (sec === "Open") return ""
-    return "lock"
+  function batteryIcon(level) {
+    if (level >= 90)  return "battery_full"
+    if (level >= 80)  return "battery_6_bar"
+    if (level >= 70)  return "battery_5_bar"
+    if (level >= 60)  return "battery_4_bar"
+    if (level >= 50)  return "battery_3_bar"
+    if (level >= 40)  return "battery_2_bar"
+    if (level >= 30)  return "battery_1_bar"
+    if (level >= 20)  return "battery_0_bar"
+    if (level >= 10)  return "battery_0_bar"
+    return "battery_0_bar"
   }
 
-  // ══════════════════════════════════════════
+  function statusIcon(dev) {
+    if (dev.connected) return "check_circle"
+    if (dev.paired)    return "check"
+    if (dev.trusted)   return "verified"
+    return ""
+  }
+
+  // ── Persistent history ──
+  Process {
+    id: readHistory
+    command: ["bash", "-c", "cat $HOME/.cache/quickshell/bt_recent 2>/dev/null || true"]
+    running: true
+    stdout: StdioCollector {
+      onStreamFinished: btWindow.recentAddress = this.text.trim()
+    }
+  }
+
+  Process {
+    id: writeHistory
+    running: false
+  }
+
+  function saveRecent(address) {
+    writeHistory.command = ["bash", "-c",
+      "mkdir -p $HOME/.cache/quickshell && echo '" + address + "' > $HOME/.cache/quickshell/bt_recent"]
+    writeHistory.running = true
+    recentAddress = address
+  }
+
+  function reconnectRecent() {
+    if (!recentAddress) return
+    var devs = Bluetooth.devices.values
+    for (var i = 0; i < devs.length; i++) {
+      if (devs[i].address === recentAddress) {
+        devs[i].connect()
+        return
+      }
+    }
+  }
+
   // ── Keyboard handler ──
-  // ══════════════════════════════════════════
   Item {
     anchors.fill: parent
-    focus: !wifiWindow.passwordMode
+    focus: true
 
     Keys.onPressed: (event) => {
-      var count = wifi.networks.count
+      var count = Bluetooth.devices.values.length
       switch (event.key) {
         case Qt.Key_J:
         case Qt.Key_Down:
-          if (networkList.currentIndex < count - 1)
-            networkList.currentIndex++
+          if (deviceList.currentIndex < count - 1)
+            deviceList.currentIndex++
           event.accepted = true
           break
         case Qt.Key_K:
         case Qt.Key_Up:
-          if (networkList.currentIndex > 0)
-            networkList.currentIndex--
+          if (deviceList.currentIndex > 0)
+            deviceList.currentIndex--
           event.accepted = true
           break
         case Qt.Key_G:
           if (event.modifiers & Qt.ShiftModifier)
-            networkList.currentIndex = count - 1
+            deviceList.currentIndex = count - 1
           else
-            networkList.currentIndex = 0
+            deviceList.currentIndex = 0
           event.accepted = true
           break
         case Qt.Key_Return:
         case Qt.Key_Enter:
-          if (count > 0) {
-            var net = wifi.networks.get(networkList.currentIndex)
-            if (net) {
-              if (net.connected) {
-                wifi.disconnect()
-              } else if (net.known || net.security === "Open") {
-                wifi.connect(net.ssid)
-              } else {
-                // Need password — enter password mode
-                wifiWindow.pendingSsid = net.ssid
-                wifiWindow.passwordMode = true
+          var dev = Bluetooth.devices.values[deviceList.currentIndex]
+          if (dev) {
+            if (dev.connected) {
+              dev.disconnect()
+            } else {
+              if(dev.paired == false){
+                dev.pair()
               }
+              dev.connect()
+              dev.trusted = true
+              saveRecent(dev.address)
+              if (hideOnConnect) btWindow.visible = false
             }
           }
           event.accepted = true
           break
         case Qt.Key_P:
-          wifi.togglePower()
+          if (adapter) adapter.enabled = !adapter.enabled
           event.accepted = true
           break
         case Qt.Key_S:
-          wifi.scan()
+          if (adapter.discovering == false) adapter.discovering = true
           event.accepted = true
           break
-        case Qt.Key_D:
-          wifi.disconnect()
-          event.accepted = true
-          break
-        case Qt.Key_R:
-          wifi.refresh()
-          event.accepted = true
-          break
-        case Qt.Key_F:
-          if (count > 0) {
-            var n = wifi.networks.get(networkList.currentIndex)
-            if (n && n.known) wifi.forget(n.ssid)
+        case Qt.Key_X:
+          var dev = Bluetooth.devices.values[deviceList.currentIndex]
+          if (dev) {
+            if (dev.connected) {
+              dev.disconnect()
+            }
+            dev.forget()
           }
+          deviceList.currentIndex--;
+          event.accepted = true
+          break
+
+        case Qt.Key_R:
+          reconnectRecent()
+          event.accepted = true
+          break
+        case Qt.Key_H:
+          hideOnConnect = !hideOnConnect
           event.accepted = true
           break
         case Qt.Key_Q:
         case Qt.Key_Escape:
-          wifiWindow.visible = false
+          btWindow.visible = false
           event.accepted = true
           break
       }
@@ -127,38 +221,38 @@ KeyboardWindow {
         Layout.alignment: Qt.AlignHCenter
         spacing: 10
 
-        // Wi-Fi icon
+        // Bluetooth icon
         Text {
           id: headerIcon
-          text: wifi.powered ? "wifi" : "wifi_off"
+          text: "bluetooth"
           font.pixelSize: Theme.sizeHeaderTitle
           font.family: Theme.iconFont
-          color: wifiWindow.headerColor
+          color: btWindow.headerColor
           Behavior on color { ColorAnimation { duration: 300 } }
 
           SequentialAnimation on opacity {
             id: blinkAnim
-            running: wifi.scanning
+            running: btWindow.adapter ? btWindow.adapter.discovering : false
             loops: Animation.Infinite
             NumberAnimation { to: 0.3; duration: 700; easing.type: Easing.InOutSine }
             NumberAnimation { to: 1.0; duration: 700; easing.type: Easing.InOutSine }
           }
 
           Connections {
-            target: wifi
-            function onScanningChanged() {
-              if (!wifi.scanning) headerIcon.opacity = 1.0
+            target: btWindow.adapter
+            function onDiscoveringChanged() {
+              if (!btWindow.adapter.discovering) headerIcon.opacity = 1.0
             }
           }
         }
 
         // Title
         Text {
-          text: "Wi-Fi"
+          text: "Bluetooth"
           font.pixelSize: Theme.sizeHeaderTitle
           font.family: Theme.monoFont
           font.bold: true
-          color: wifiWindow.headerColor
+          color: btWindow.headerColor
           Behavior on color { ColorAnimation { duration: 300 } }
         }
 
@@ -169,14 +263,14 @@ KeyboardWindow {
           radius: 5
           Layout.alignment: Qt.AlignVCenter
           color: {
-            if (!wifi.powered) return Theme.red
-            if (wifi.connected) return Theme.green
+            if (!btWindow.adapter || !btWindow.adapter.enabled) return Theme.red
+            if (btWindow.connectedDevice) return Theme.green
             return Theme.accent
           }
           Behavior on color { ColorAnimation { duration: 300 } }
 
           SequentialAnimation on scale {
-            running: wifi.scanning
+            running: btWindow.adapter ? btWindow.adapter.discovering : false
             loops: Animation.Infinite
             NumberAnimation { to: 1.4; duration: 600; easing.type: Easing.InOutSine }
             NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
@@ -184,18 +278,36 @@ KeyboardWindow {
         }
       }
 
-      // ── Connected network info ──
-      Text {
-        Layout.fillWidth: true
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: Theme.sizeStatusText
-        font.family: Theme.monoFont
-        color: wifi.connected ? Theme.textSecondary : Theme.textMuted
-        text: {
-          if (!wifi.connected) return "not connected"
-          var s = wifi.connectedSsid || "Unknown"
-          s += "  " + signalIcon(wifi.signalStrength) + " " + wifi.signalStrength + "%"
-          return s
+      // ── Connected device info ──
+      Row {
+        Layout.alignment: Qt.AlignHCenter
+        spacing: 8
+
+        Text {
+          font.pixelSize: Theme.sizeStatusText
+          font.family: Theme.monoFont
+          color: btWindow.connectedDevice ? Theme.textSecondary : Theme.textMuted
+          text: {
+            var dev = btWindow.connectedDevice
+            if (!dev) return "no device connected"
+            return dev.name || "Unknown"
+          }
+        }
+
+        Text {
+          visible: btWindow.connectedDevice && btWindow.connectedDevice.batteryAvailable
+          font.pixelSize: Theme.sizeStatusText
+          font.family: Theme.monoFont
+          color: Theme.textSecondary
+          textFormat: Text.RichText
+          text: {
+            var dev = btWindow.connectedDevice
+            if (dev && dev.batteryAvailable) {
+              var pct = Math.round(dev.battery * 100)
+              return "<span style=\"font-family: '" + Theme.iconFont + "';\">" + btWindow.batteryIcon(pct) + "</span>&nbsp;" + pct + "%"
+            }
+            return ""
+          }
         }
       }
 
@@ -211,10 +323,9 @@ KeyboardWindow {
           model: [
             {k: "p", d: "power"},
             {k: "s", d: "scan"},
-            {k: "d", d: "disc"},
-            {k: "r", d: "ref"},
-            {k: "f", d: "forget"},
-            {k: "q", d: "quit"}
+            {k: "x", d: "remove"},
+            {k: "r", d: "reconn"},
+            {k: "h", d: btWindow.hideOnConnect ? "hide: on" : "hide: off"},
           ]
           delegate: Row {
             spacing: 6
@@ -253,30 +364,26 @@ KeyboardWindow {
       }
 
       // ══════════════════════════════
-      // ── Network list ──
+      // ── Device list ──
       // ══════════════════════════════
       ListView {
-        id: networkList
+        id: deviceList
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
         spacing: 2
-        model: wifi.networks
+        model: btWindow.sortedDevices
         currentIndex: 0
         highlightFollowsCurrentItem: true
         keyNavigationEnabled: false
 
         delegate: Item {
+          required property var modelData
           required property int index
-          width: networkList.width
+          width: deviceList.width
           height: 34
 
-          property bool isCurrent: index === networkList.currentIndex
-          property string ssid: wifi.networks.get(index) ? wifi.networks.get(index).ssid : ""
-          property int signal: wifi.networks.get(index) ? wifi.networks.get(index).signal : 0
-          property string security: wifi.networks.get(index) ? wifi.networks.get(index).security : ""
-          property bool isConnected: wifi.networks.get(index) ? wifi.networks.get(index).connected : false
-          property bool isKnown: wifi.networks.get(index) ? wifi.networks.get(index).known : false
+          property bool isCurrent: index === deviceList.currentIndex
 
           Rectangle {
             anchors.fill: parent
@@ -301,13 +408,13 @@ KeyboardWindow {
               Layout.preferredWidth: 12
             }
 
-            // Signal strength icon
+            // Device type icon
             Text {
-              text: wifiWindow.signalIcon(signal)
+              text: btWindow.deviceIcon(modelData)
               font.pixelSize: Theme.sizeDeviceIcon
               font.family: Theme.iconFont
               color: {
-                if (isConnected) return Theme.green
+                if (modelData.connected) return Theme.green
                 if (isCurrent) return Theme.accent
                 return Theme.textMuted
               }
@@ -315,25 +422,15 @@ KeyboardWindow {
               Behavior on color { ColorAnimation { duration: 120 } }
             }
 
-            // Lock icon for secured networks
+            // Device name
             Text {
-              text: wifiWindow.securityIcon(security)
-              font.pixelSize: Theme.sizeListText - 2
-              font.family: Theme.iconFont
-              color: Theme.textMuted
-              visible: security !== "Open"
-              Layout.preferredWidth: security !== "Open" ? 14 : 0
-            }
-
-            // SSID
-            Text {
-              text: ssid || "Hidden Network"
+              text: modelData.name || modelData.address || "Unknown"
               font.pixelSize: Theme.sizeListText
               font.family: Theme.monoFont
               color: {
-                if (isConnected) return Theme.wifiConnected
-                if (isKnown) return Theme.wifiKnown
-                if (security === "Open") return Theme.wifiOpen
+                if (modelData.connected) return Theme.devConnected
+                if (modelData.paired)    return Theme.devPaired
+                if (modelData.trusted)   return Theme.devTrusted
                 return "#88c0d0" // Hardcoded cyan for newly discovered
               }
               elide: Text.ElideRight
@@ -346,7 +443,7 @@ KeyboardWindow {
               spacing: 4
               Layout.alignment: Qt.AlignVCenter
               Rectangle {
-                visible: isConnected
+                visible: modelData.connected
                 color: "#a3be8c" // Hardcoded dull green
                 radius: 8
                 width: 16; height: 16
@@ -354,7 +451,7 @@ KeyboardWindow {
                 Text { text: "C"; font.pixelSize: 10; font.bold: true; color: Theme.bgPrimary; anchors.centerIn: parent }
               }
               Item {
-                visible: isKnown
+                visible: modelData.trusted
                 width: 16; height: 16
                 Rectangle {
                   anchors.fill: parent
@@ -371,7 +468,17 @@ KeyboardWindow {
                   radius: 8
                   antialiasing: true
                 }
-                Text { text: "K"; font.pixelSize: 10; font.bold: true; color: "#81a1c1"; anchors.centerIn: parent }
+                Text { text: "T"; font.pixelSize: 10; font.bold: true; color: "#81a1c1"; anchors.centerIn: parent }
+              }
+              Rectangle {
+                visible: modelData.paired
+                color: "transparent"
+                border.color: "#ebcb8b" // Hardcoded dull yellow
+                border.width: 1
+                radius: 8
+                width: 16; height: 16
+                antialiasing: true
+                Text { text: "P"; font.pixelSize: 10; font.bold: true; color: "#ebcb8b"; anchors.centerIn: parent }
               }
             }
           }
@@ -380,12 +487,12 @@ KeyboardWindow {
         // ── Empty state ──
         Column {
           anchors.centerIn: parent
-          visible: networkList.count === 0
+          visible: deviceList.count === 0
           spacing: 12
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: !wifi.powered ? "wifi_off" : "wifi"
+            text: (!btWindow.adapter || !btWindow.adapter.enabled) ? "bluetooth_disabled" : "bluetooth"
             font.pixelSize: Theme.sizeEmptyIcon
             font.family: Theme.iconFont
             color: Theme.textDark
@@ -395,74 +502,14 @@ KeyboardWindow {
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: {
-              if (!wifi.ready) return "detecting backend..."
-              if (!wifi.powered) return "wifi off  ·  [p] to enable"
-              return "no networks  ·  [s] to scan"
+              if (!btWindow.adapter || !btWindow.adapter.enabled)
+                return "bluetooth off  ·  [p] to enable"
+              return "no devices  ·  [s] to scan"
             }
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: Theme.sizeEmptyState
             font.family: Theme.monoFont
             color: Theme.textMuted
-          }
-        }
-      }
-
-      // ══════════════════════════════
-      // ── Password input row ──
-      // ══════════════════════════════
-      Rectangle {
-        Layout.fillWidth: true
-        height: 38
-        radius: 6
-        color: Theme.bgSecondary
-        border.width: 1
-        border.color: Theme.accent
-        visible: wifiWindow.passwordMode
-
-        RowLayout {
-          anchors.fill: parent
-          anchors.leftMargin: 10
-          anchors.rightMargin: 10
-          spacing: 8
-
-          Text {
-            text: "lock"
-            font.pixelSize: Theme.sizeListText
-            font.family: Theme.iconFont
-            color: Theme.accent
-          }
-
-          TextInput {
-            id: pskInput
-            Layout.fillWidth: true
-            font.pixelSize: Theme.sizeListText
-            font.family: Theme.monoFont
-            color: Theme.textPrimary
-            echoMode: TextInput.Password
-            focus: wifiWindow.passwordMode
-            clip: true
-
-            onAccepted: {
-              if (text.length > 0) {
-                wifi.connectWithPassword(wifiWindow.pendingSsid, text)
-                text = ""
-                wifiWindow.passwordMode = false
-              }
-            }
-
-            Keys.onEscapePressed: {
-              text = ""
-              wifiWindow.passwordMode = false
-            }
-          }
-
-          Text {
-            text: wifiWindow.pendingSsid
-            font.pixelSize: Theme.sizeStatusText
-            font.family: Theme.monoFont
-            color: Theme.textMuted
-            elide: Text.ElideRight
-            Layout.maximumWidth: 120
           }
         }
       }
@@ -473,7 +520,7 @@ KeyboardWindow {
         spacing: 6
 
         Text {
-          text: "wifi"
+          text: "bluetooth"
           font.pixelSize: Theme.sizeFooter
           font.family: Theme.iconFont
           color: Theme.textDark
@@ -481,14 +528,14 @@ KeyboardWindow {
 
         Text {
           Layout.fillWidth: true
-          text: wifi.device + " · " + wifi.backendName
+          text: btWindow.adapter ? btWindow.adapter.name : "no adapter"
           font.pixelSize: Theme.sizeFooter
           font.family: Theme.monoFont
           color: Theme.textDark
         }
 
         Text {
-          text: wifi.networks.count + " networks"
+          text: Bluetooth.devices.values.length + " devices"
           font.pixelSize: Theme.sizeFooter
           font.family: Theme.monoFont
           color: Theme.textDark

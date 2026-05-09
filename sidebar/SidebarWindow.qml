@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "../" // Import parent directory to access Theme.qml
+import "../" 
 
 PanelWindow {
   id: root

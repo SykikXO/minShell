@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import "./sidebar"
+import "./window"
 
 ShellRoot {
   id: root
