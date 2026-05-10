@@ -3,13 +3,14 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "../"
+import "../components"
 
 SidebarWidget {
   id: root
-  // Waybar pulseaudio: border-bottom: 1px dashed alpha(@color10, 1); background: alpha(@color2, 0.7)
+  
   bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
-  borderColor: Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio.muted ? Theme.c(1) : Qt.rgba(Theme.c(10).r, Theme.c(10).g, Theme.c(10).b, 1)
-  borderStyle: 2 // dashed
+  
+  
   
   property var sink: Pipewire.defaultAudioSink
   
@@ -25,7 +26,8 @@ SidebarWidget {
       id: audioIcon
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: 18
+      font.pixelSize: Theme.sizeIcon
+      font.bold: true
       color: mouseArea.containsMouse ? Theme.c(15) : (root.sink && root.sink.audio && root.sink.audio.muted ? Theme.c(1) : Theme.textPrimary)
       text: {
         if (root.sink && root.sink.audio && root.sink.audio.muted) return "volume_off";
@@ -53,41 +55,14 @@ SidebarWidget {
       }
     }
 
-    PopupWindow {
-      id: audioToolTip
+    SidebarTooltip {
       visible: mouseArea.containsMouse
-      color: "transparent"
-      implicitWidth: contentRect.implicitWidth
-      implicitHeight: contentRect.implicitHeight
-      anchor {
-        item: root
-        edges: Edges.Right
-        gravity: Edges.Right
-        margins.left: Theme.tooltipOffset
+      text: {
+        if (root.sink && root.sink.audio && root.sink.audio.muted) return "Muted";
+        let v = root.sink && root.sink.audio && !isNaN(root.sink.audio.volume) ? root.sink.audio.volume : 0;
+        return "Volume: " + Math.round(v * 100) + "%";
       }
-
-      Rectangle {
-        id: contentRect
-        color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-        border.color: Theme.c(6)
-        border.width: 1
-        radius: 4
-        implicitWidth: textItem.implicitWidth + 20
-        implicitHeight: textItem.implicitHeight + 20
-
-        Text {
-          id: textItem
-          anchors.centerIn: parent
-          text: {
-            if (root.sink && root.sink.audio && root.sink.audio.muted) return "Muted";
-            let v = root.sink && root.sink.audio && !isNaN(root.sink.audio.volume) ? root.sink.audio.volume : 0;
-            return "Volume: " + Math.round(v * 100) + "%";
-          }
-          font.family: Theme.barFont
-          font.pixelSize: 16
-          color: Theme.textPrimary
-        }
-      }
+      targetItem: mouseArea
     }
     
     Process {

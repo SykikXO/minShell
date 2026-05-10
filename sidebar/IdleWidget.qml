@@ -4,10 +4,10 @@ import "../"
 
 SidebarWidget {
   id: root
-  // Waybar idle_inhibitor: border-bottom: 1px dashed alpha(@color10, 1); background: alpha(@color2, 0.7)
+  
   bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
-  borderColor: Qt.rgba(Theme.c(10).r, Theme.c(10).g, Theme.c(10).b, 1)
-  borderStyle: 2 // dashed
+  
+  
   
   property bool activated: false
   
