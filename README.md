@@ -2,6 +2,18 @@
 
 A Quickshell configuration providing a minimal functional sidebar for Hyprland with popup windows for Wi-Fi and Bluetooth management.
 
+## Preview
+
+![Sidebar Overview](assets/sidebar-overview.png)
+![Sidebar Widgets](assets/sidebar-widgets.png)
+![Sidebar Hardware](assets/sidebar-hardware.png)
+![Full Sidebar](assets/sidebar-full.png)
+
+### Popup Windows
+
+![Wi-Fi Popup](assets/wifi-popup.png)
+![Bluetooth Popup](assets/bluetooth-popup.png)
+
 ## Features
 
 ### Sidebar Widgets
@@ -63,8 +75,14 @@ Edit `Theme.qml` to customize colors and styling. The theme uses pywal colors fo
 
 ```
 quickshell/
+├── assets/              # Images and screenshots
 ├── shell.qml            # Main entry point
 ├── Theme.qml            # Shared theme and styling
+├── components/          # Reusable UI components
+│   ├── SidebarTooltip.qml
+│   ├── KeybindBar.qml
+│   ├── PopupHeader.qml
+│   └── StatusBadge.qml
 ├── SidebarWindow.qml    # Sidebar container
 ├── SidebarWidget.qml    # Base widget component
 ├── sidebar/
