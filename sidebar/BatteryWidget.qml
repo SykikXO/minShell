@@ -5,29 +5,43 @@ import "../"
 
 SidebarWidget {
   id: root
-  // Waybar battery: border-bottom: 1px solid alpha(@color6, 1); background-color: alpha(@color9, 1);
-  // Charging: @green. Critical: @color3 with blink
   
+
   property var bat: UPower.displayDevice
-  property bool isCharging: bat && bat.state === 1 // 1 is charging, 2 is discharging
-  property bool isCritical: bat && (bat.percentage * 100) <= 15
+  property int percentage: bat ? Math.round(bat.percentage * 100) : 100
+  property bool isCharging: bat && bat.state === 1
+  property bool isCritical: percentage <= 15
+  property bool isLow: percentage > 15 && percentage <= 25
+  property bool isHighCharging: isCharging && percentage > 80
   property bool showTime: false
+
   
+  
+
+  property bool blinkState: false
+
   bgColor: {
+    if (isCritical && !isCharging) {
+      return blinkState ? "black" : Theme.c(3);
+    }
+    if (isCharging && percentage > 80) return Theme.c(3);
+    if (isLow && !isCharging) return Theme.orange;
     if (isCharging) return Theme.green;
-    if (isCritical) return Theme.c(3);
     return Qt.darker(Theme.c(9), 2.0);
   }
-  
-  borderColor: isCharging ? Theme.green : Qt.rgba(Theme.c(6).r, Theme.c(6).g, Theme.c(6).b, 1)
-  borderStyle: 1 // solid
-  
-  // Critical blink animation
+
+  Timer {
+    interval: 300
+    running: isCritical && !isCharging
+    repeat: true
+    onTriggered: root.blinkState = !root.blinkState
+  }
+
   SequentialAnimation on opacity {
-    running: root.isCritical && !root.isCharging
+    running: isLow && !isCharging
     loops: Animation.Infinite
-    NumberAnimation { to: 0.5; duration: 300 }
-    NumberAnimation { to: 1.0; duration: 300 }
+    NumberAnimation { to: 0.5; duration: 800 }
+    NumberAnimation { to: 1.0; duration: 800 }
   }
   
   content: Item {
@@ -43,7 +57,12 @@ SidebarWidget {
         anchors.horizontalCenter: parent.horizontalCenter
         font.family: Theme.iconFont
         font.pixelSize: 24
-        color: Theme.white
+        color: {
+          if (isCritical && !isCharging) return blinkState ? Theme.c(3) : "black";
+          if (isCharging && percentage > 80) return "black";
+          if (isLow && !isCharging) return "black";
+          return Theme.white;
+        }
         text: {
           let p = root.bat ? (root.bat.percentage * 100) : 100;
           if (root.isCharging) {
@@ -64,7 +83,12 @@ SidebarWidget {
         font.family: Theme.barFont
         font.pixelSize: 15
         font.bold: true
-        color: Theme.white
+        color: {
+          if (isCritical && !isCharging) return blinkState ? Theme.c(3) : "black";
+          if (isCharging && percentage > 80) return "black";
+          if (isLow && !isCharging) return "black";
+          return Theme.white;
+        }
         text: root.bat ? Math.round(root.bat.percentage * 100)+"%" : "100%"
       }
     }
@@ -74,7 +98,12 @@ SidebarWidget {
       anchors.centerIn: parent
       font.family: Theme.barFont
       font.pixelSize: 15
-      color: Theme.white
+      color: {
+        if (isCritical && !isCharging) return blinkState ? Theme.c(3) : "black";
+        if (isCharging && percentage > 80) return "black";
+        if (isLow && !isCharging) return "black";
+        return Theme.white;
+      }
       horizontalAlignment: Text.AlignHCenter
       lineHeight: 0.9
       text: {
