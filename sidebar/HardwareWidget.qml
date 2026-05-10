@@ -2,12 +2,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../"
+import "../components"
 
 SidebarWidget {
   id: root
   bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
-  borderColor: Qt.rgba(Theme.c(7).r, Theme.c(7).g, Theme.c(7).b, 1)
-  borderStyle: 3 // dotted
+  
+  
   
   property real cpuVal: 0
   property real memVal: 0
@@ -43,39 +44,15 @@ SidebarWidget {
       Behavior on color { ColorAnimation { duration: 200 } }
       Text {
         anchors.centerIn: parent
-        font.family: Theme.iconFont; font.pixelSize: 18
+        font.family: Theme.iconFont; font.pixelSize: Theme.sizeIcon
         color: cpuHover.hovered ? "black" : getCpuColor(root.cpuVal)
         text: "developer_board"
       }
       
-      PopupWindow {
+      SidebarTooltip {
         visible: cpuHover.hovered
-        color: "transparent"
-        implicitWidth: cpuContentRect.implicitWidth
-        implicitHeight: cpuContentRect.implicitHeight
-        anchor {
-          item: cpuRect
-          edges: Edges.Right
-          gravity: Edges.Right
-          margins.left: Theme.tooltipOffset
-        }
-        Rectangle {
-          id: cpuContentRect
-          color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-          border.color: Theme.c(6)
-          border.width: 1
-          radius: 4
-          implicitWidth: cpuTextItem.implicitWidth + 20
-          implicitHeight: cpuTextItem.implicitHeight + 20
-          Text {
-            id: cpuTextItem
-            anchors.centerIn: parent
-            text: "CPU: " + Math.round(root.cpuVal) + "%"
-            font.family: Theme.barFont
-            font.pixelSize: 16
-            color: Theme.textPrimary
-          }
-        }
+        text: "CPU: " + Math.round(root.cpuVal) + "%"
+        targetItem: cpuRect
       }
       HoverHandler { id: cpuHover }
       
@@ -103,39 +80,15 @@ SidebarWidget {
       Behavior on color { ColorAnimation { duration: 200 } }
       Text {
         anchors.centerIn: parent
-        font.family: Theme.iconFont; font.pixelSize: 18
+        font.family: Theme.iconFont; font.pixelSize: Theme.sizeIcon
         color: memHover.hovered ? "black" : getMemColor(root.memVal)
         text: "memory"
       }
       
-      PopupWindow {
+      SidebarTooltip {
         visible: memHover.hovered
-        color: "transparent"
-        implicitWidth: memContentRect.implicitWidth
-        implicitHeight: memContentRect.implicitHeight
-        anchor {
-          item: memRect
-          edges: Edges.Right
-          gravity: Edges.Right
-          margins.left: Theme.tooltipOffset
-        }
-        Rectangle {
-          id: memContentRect
-          color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-          border.color: Theme.c(6)
-          border.width: 1
-          radius: 4
-          implicitWidth: memTextItem.implicitWidth + 20
-          implicitHeight: memTextItem.implicitHeight + 20
-          Text {
-            id: memTextItem
-            anchors.centerIn: parent
-            text: "RAM: " + Math.round(root.memVal) + "%"
-            font.family: Theme.barFont
-            font.pixelSize: 16
-            color: Theme.textPrimary
-          }
-        }
+        text: "RAM: " + Math.round(root.memVal) + "%"
+        targetItem: memRect
       }
       HoverHandler { id: memHover }
       
@@ -163,39 +116,15 @@ SidebarWidget {
       Behavior on color { ColorAnimation { duration: 200 } }
       Text {
         anchors.centerIn: parent
-        font.family: Theme.iconFont; font.pixelSize: 18
+        font.family: Theme.iconFont; font.pixelSize: Theme.sizeIcon
         color: tempHover.hovered ? "black" : getTempColor(root.tempVal)
         text: "thermostat"
       }
       
-      PopupWindow {
+      SidebarTooltip {
         visible: tempHover.hovered
-        color: "transparent"
-        implicitWidth: tempContentRect.implicitWidth
-        implicitHeight: tempContentRect.implicitHeight
-        anchor {
-          item: tempRect
-          edges: Edges.Right
-          gravity: Edges.Right
-          margins.left: Theme.tooltipOffset
-        }
-        Rectangle {
-          id: tempContentRect
-          color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-          border.color: Theme.c(6)
-          border.width: 1
-          radius: 4
-          implicitWidth: tempTextItem.implicitWidth + 20
-          implicitHeight: tempTextItem.implicitHeight + 20
-          Text {
-            id: tempTextItem
-            anchors.centerIn: parent
-            text: "Temp: " + Math.round(root.tempVal) + "°C"
-            font.family: Theme.barFont
-            font.pixelSize: 16
-            color: Theme.textPrimary
-          }
-        }
+        text: "Temp: " + Math.round(root.tempVal) + "°C"
+        targetItem: tempRect
       }
       HoverHandler { id: tempHover }
       
