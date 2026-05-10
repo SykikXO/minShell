@@ -27,29 +27,34 @@ QtObject {
     property int sizeEmptyState: 17
     property int sizeFooter: 15
     property int sizeBattery: 19
+    property int sizeIcon: 22
 
     // ── Layout & Offsets ──
-    property int tooltipOffset: 32
+    property int tooltipOffset: 36
 
     // ── Pywal colors (loaded from ~/.cache/wal/colors.json) ──
     property var _wal: null
 
-    property color bgPrimary: _wal ? _wal.special.background : "#091510"
-    property color bgSecondary: _wal ? Qt.lighter(_wal.special.background, 1.15) : "#112019"
-    property color bgTertiary: _wal ? Qt.lighter(_wal.special.background, 1.25) : "#192a22"
-    property color bgHover: _wal ? Qt.lighter(_wal.special.background, 1.35) : "#21342c"
-    property color borderColor: _wal ? _wal.colors.color8 : "#586c63"
+    property color bgPrimary: _wal ? _wal.special.background : "#0e1412"
+    property color bgSecondary: _wal ? Qt.lighter(_wal.special.background, 1.15) : "#162220"
+    property color bgTertiary: _wal ? Qt.lighter(_wal.special.background, 1.25) : "#1e302c"
+    property color bgHover: _wal ? Qt.lighter(_wal.special.background, 1.35) : "#284038"
+    property color borderColor: _wal ? _wal.colors.color8 : "#4a5a54"
     property color textPrimary: _wal ? _wal.special.foreground : "#c1c4c3"
-    property color textSecondary: _wal ? _wal.colors.color7 : "#8d9793"
-    property color textMuted: _wal ? _wal.colors.color8 : "#586c63"
-    property color textDark: _wal ? Qt.darker(_wal.colors.color8, 1.4) : "#3b4b43"
-    property color accent: _wal ? _wal.colors.color4 : "#62747c"
-    property color accentDark: _wal ? Qt.darker(_wal.colors.color4, 1.5) : "#3d59a1"
-    property color green: _wal ? _wal.colors.color2 : "#27843f"
-    property color red: _wal ? _wal.colors.color1 : "#475868"
-    property color lightBlue: _wal ? _wal.colors.color12 : "#67a2bd"
-    property color toggleOff: _wal ? Qt.darker(_wal.colors.color8, 1.2) : "#3b4b43"
+    property color textSecondary: _wal ? _wal.colors.color7 : "#9ba19e"
+    property color textMuted: _wal ? _wal.colors.color8 : "#6b7674"
+    property color textDark: _wal ? Qt.darker(_wal.colors.color8, 1.4) : "#2d3835"
+property color accent: _wal ? _wal.colors.color4 : "#7aa2b9"
+    property color accentDark: _wal ? Qt.darker(_wal.colors.color4, 1.5) : "#4d6b82"
+    property color toggleOff: _wal ? Qt.darker(_wal.colors.color8, 1.2) : "#2d3835"
     property color white: "#ffffff"
+
+    // ── Semantic colors (always fixed, never from pywal) ──
+    property color green: "#4a8c6f"
+    property color red: "#c75d68"
+    property color orange: "#c98845"
+    property color yellow: "#b8a46a"
+    property color purple: "#9a7a93"
 
     // ── Device state colors (matched to pywal) ──
     property color devConnected: textPrimary
