@@ -4,15 +4,23 @@ A Quickshell configuration providing a minimal functional sidebar for Hyprland w
 
 ## Preview
 
-![Sidebar Overview](assets/sidebar-overview.png)
-![Sidebar Widgets](assets/sidebar-widgets.png)
-![Sidebar Hardware](assets/sidebar-hardware.png)
-![Full Sidebar](assets/sidebar-full.png)
+<p align="center">
+  <img src="assets/sidebar-overview.avif" width="100" />&nbsp;&nbsp;
+  <img src="assets/sidebar-widgets.avif" width="100" />&nbsp;&nbsp;
+  <img src="assets/sidebar-hardware.avif" width="100" />
+</p>
+<p align="center">
+  <img src="assets/sidebar-full.avif" width="600" />
+</p>
 
 ### Popup Windows
 
-![Wi-Fi Popup](assets/wifi-popup.png)
-![Bluetooth Popup](assets/bluetooth-popup.png)
+<p align="center">
+  <img src="assets/wifi-popup.avif" width="600" />
+</p>
+<p align="center">
+  <img src="assets/bluetooth-popup.avif" width="600" />
+</p>
 
 ## Features
 
@@ -75,7 +83,7 @@ Edit `Theme.qml` to customize colors and styling. The theme uses pywal colors fo
 
 ```
 quickshell/
-├── assets/              # Images and screenshots
+├── assets/              # Preview images (avif)
 ├── shell.qml            # Main entry point
 ├── Theme.qml            # Shared theme and styling
 ├── components/          # Reusable UI components
