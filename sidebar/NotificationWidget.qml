@@ -6,8 +6,7 @@ import "../"
 SidebarWidget {
   id: root
   bgColor: Qt.rgba(Theme.c(7).r, Theme.c(7).g, Theme.c(7).b, 0.5)
-  borderColor: Qt.rgba(Theme.c(7).r, Theme.c(7).g, Theme.c(7).b, 1)
-  borderStyle: 1 // solid
+  
   
   content: Item {
     width: parent.width

@@ -2,6 +2,7 @@ import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 import "../"
+import "../components"
 
 KeyboardWindow {
   id: wifiWindow

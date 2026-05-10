@@ -12,7 +12,7 @@ PanelWindow {
     right: false
   }
 
-  implicitWidth: 38
+  implicitWidth: 40
   color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.0) // transparent like waybar
 
   // Allow Pywal transitions

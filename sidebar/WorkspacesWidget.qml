@@ -6,7 +6,7 @@ import "../"
 SidebarWidget {
   id: root
   bgColor: "transparent"
-  borderColor: "transparent" // no border for workspaces center group usually
+  
 
   property int maxWorkspaceId: 5
 
