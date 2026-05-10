@@ -4,13 +4,14 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Bluetooth
 import "../"
+import "../components"
 
 SidebarWidget {
   id: root
   // Matching network/audio style
   bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
-  borderColor: Qt.rgba(Theme.c(7).r, Theme.c(7).g, Theme.c(7).b, 1)
-  borderStyle: 2 // dashed
+  
+  
   
   property var connectedDevice: {
     var devs = Bluetooth.devices.values
@@ -59,7 +60,8 @@ SidebarWidget {
       id: icon
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: 18
+      font.pixelSize: Theme.sizeIcon
+      font.bold: true
       color: root.isConnected ? (hover.hovered ? Theme.c(15) : Theme.textPrimary) : Theme.c(1)
       text: (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.enabled) ? "bluetooth_disabled" : (root.isConnected ? "bluetooth_connected" : "bluetooth")
     }
@@ -75,37 +77,10 @@ SidebarWidget {
       command: ["qs", "ipc", "call", "shell", "bluetooth"]
     }
     
-    PopupWindow {
-      id: btToolTip
+    SidebarTooltip {
       visible: hover.hovered
-      color: "transparent"
-      implicitWidth: contentRect.implicitWidth
-      implicitHeight: contentRect.implicitHeight
-      anchor {
-        item: root
-        edges: Edges.Right
-        gravity: Edges.Right
-        margins.left: Theme.tooltipOffset
-      }
-
-      Rectangle {
-        id: contentRect
-        color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-        border.color: Theme.c(6)
-        border.width: 1
-        radius: 4
-        implicitWidth: textItem.implicitWidth + 20
-        implicitHeight: textItem.implicitHeight + 20
-
-        Text {
-          id: textItem
-          anchors.centerIn: parent
-          text: root.deviceName
-          font.family: Theme.barFont
-          font.pixelSize: 16
-          color: Theme.textPrimary
-        }
-      }
+      text: root.deviceName
+      targetItem: icon
     }
   }
 }

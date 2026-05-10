@@ -4,13 +4,14 @@ import Quickshell
 import Quickshell.Io
 import "../"
 import "../window"
+import "../components"
 
 SidebarWidget {
   id: root
-  // Waybar network: background: alpha(@color2, 0.7); border-bottom: 1px dashed alpha(@color7, 1);
+  
   bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
-  borderColor: Qt.rgba(Theme.c(7).r, Theme.c(7).g, Theme.c(7).b, 1)
-  borderStyle: 2 // dashed
+  
+  
   
   content: Item {
     width: parent.width
@@ -26,7 +27,7 @@ SidebarWidget {
         id: icon
         anchors.horizontalCenter: parent.horizontalCenter
         font.family: Theme.iconFont
-        font.pixelSize: 18
+        font.pixelSize: Theme.sizeIcon
         color: wifi.connectedSsid !== "" ? (hover.hovered ? Theme.c(15) : Theme.textPrimary) : Theme.c(1)
         text: {
           if (!wifi.powered) return "wifi_off"
@@ -43,42 +44,15 @@ SidebarWidget {
     
     HoverHandler { id: hover }
     
-    PopupWindow {
-      id: networkToolTip
+    SidebarTooltip {
       visible: hover.hovered
-      color: "transparent"
-      implicitWidth: contentRect.implicitWidth
-      implicitHeight: contentRect.implicitHeight
-      anchor {
-        item: root
-        edges: Edges.Right
-        gravity: Edges.Right
-        margins.left: Theme.tooltipOffset
+      text: {
+        if (!wifi.powered) return "Wi-Fi Off"
+        if (wifi.scanning) return "Scanning..."
+        if (!wifi.connected) return "Disconnected"
+        return wifi.connectedSsid + " (" + wifi.signalStrength + "%)"
       }
-
-      Rectangle {
-        id: contentRect
-        color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-        border.color: Theme.c(6)
-        border.width: 1
-        radius: 4
-        implicitWidth: textItem.implicitWidth + 20
-        implicitHeight: textItem.implicitHeight + 20
-
-        Text {
-          id: textItem
-          anchors.centerIn: parent
-          text: {
-            if (!wifi.powered) return "Wi-Fi Off"
-            if (wifi.scanning) return "Scanning..."
-            if (!wifi.connected) return "Disconnected"
-            return wifi.connectedSsid + " (" + wifi.signalStrength + "%)"
-          }
-          font.family: Theme.barFont
-          font.pixelSize: 16
-          color: Theme.textPrimary
-        }
-      }
+      targetItem: icon
     }
     
    TapHandler {

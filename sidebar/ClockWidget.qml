@@ -2,12 +2,11 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import "../"
+import "../components"
 
 SidebarWidget {
   id: root
   bgColor: Qt.rgba(Theme.c(9).r, Theme.c(9).g, Theme.c(9).b, 0.8)
-  borderColor: Qt.rgba(Theme.c(6).r, Theme.c(6).g, Theme.c(6).b, 1)
-  borderStyle: 1 // solid
 
   // Helper to generate calendar text
   function getCalendarText() {
@@ -56,7 +55,6 @@ SidebarWidget {
     onTriggered: {
       let d = new Date();
       timeText.text = Qt.formatDateTime(d, "hh\nmm");
-      ampmText.text = Qt.formatDateTime(d, "AP");
     }
   }
 
@@ -73,56 +71,19 @@ SidebarWidget {
         id: timeText
         anchors.horizontalCenter: parent.horizontalCenter
         font.family: Theme.barFont
-        font.pixelSize: 20
+        font.pixelSize: 22
         color: hover.hovered ? Theme.c(15) : Theme.textPrimary
         text: Qt.formatDateTime(new Date(), "hh\nmm")
         horizontalAlignment: Text.AlignHCenter
-      }
-      
-      Text {
-        id: ampmText
-        anchors.horizontalCenter: parent.horizontalCenter
-        font.family: Theme.barFont
-        font.pixelSize: 14
-        color: hover.hovered ? Theme.c(15) : Theme.textSecondary
-        text: Qt.formatDateTime(new Date(), "AP")
       }
     }
     
     HoverHandler { id: hover }
 
-    PopupWindow {
-      id: clockToolTip
+    SidebarTooltip {
+      text: root.getCalendarText()
       visible: hover.hovered
-      color: "transparent"
-      implicitWidth: contentRect.implicitWidth
-      implicitHeight: contentRect.implicitHeight
-      anchor {
-        item: root
-        edges: Edges.Right
-        gravity: Edges.Right
-        margins.left: Theme.tooltipOffset
-      }
-
-      Rectangle {
-        id: contentRect
-        color: Qt.rgba(Theme.bgPrimary.r, Theme.bgPrimary.g, Theme.bgPrimary.b, 0.9)
-        border.color: Theme.c(6)
-        border.width: 1
-        radius: 4
-        implicitWidth: textItem.implicitWidth + 20
-        implicitHeight: textItem.implicitHeight + 20
-
-        Text {
-          id: textItem
-          anchors.centerIn: parent
-          text: root.getCalendarText()
-          textFormat: Text.RichText
-          font.family: Theme.monoFont
-          font.pixelSize: 16
-          color: Theme.textPrimary
-        }
-      }
+      targetItem: col
     }
   }
 }
