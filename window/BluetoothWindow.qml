@@ -13,6 +13,7 @@ KeyboardWindow {
   // ── State ──
   property var adapter: Bluetooth.defaultAdapter
   property bool hideOnConnect: false
+  property bool showKeybinds: false
   property string recentAddress: ""
   property int _refreshTick: 0
 
@@ -164,6 +165,7 @@ KeyboardWindow {
             deviceList.currentIndex = 0
           event.accepted = true
           break
+        case Qt.Key_C:
         case Qt.Key_Return:
         case Qt.Key_Enter:
           if (dev) {
@@ -179,7 +181,22 @@ KeyboardWindow {
           }
           event.accepted = true
           break
+        case Qt.Key_T:
+          if (dev) dev.trusted = !dev.trusted
+          event.accepted = true
+          break
         case Qt.Key_P:
+          if (dev) {
+            if (dev.paired) {
+              dev.forget()
+              deviceList.currentIndex = Math.max(0, deviceList.currentIndex - 1)
+            } else {
+              dev.pair()
+            }
+          }
+          event.accepted = true
+          break
+        case Qt.Key_O:
           if (adapter) adapter.enabled = !adapter.enabled
           event.accepted = true
           break
@@ -201,6 +218,10 @@ KeyboardWindow {
           break
         case Qt.Key_H:
           hideOnConnect = !hideOnConnect
+          event.accepted = true
+          break
+        case Qt.Key_Slash:
+          showKeybinds = !showKeybinds
           event.accepted = true
           break
         case Qt.Key_Q:
@@ -324,11 +345,13 @@ KeyboardWindow {
         
         Repeater {
           model: [
-            {k: "p", d: "power"},
-            {k: "s", d: "scan"},
+            {k: "c", d: "conn"},
+            {k: "t", d: "trust"},
+            {k: "p", d: "pair"},
             {k: "x", d: "remove"},
-            {k: "r", d: "reconn"},
-            {k: "h", d: btWindow.hideOnConnect ? "hide: on" : "hide: off"},
+            {k: "o", d: "power"},
+            {k: "s", d: "scan"},
+            {k: "/", d: "keys"},
           ]
           delegate: Row {
             spacing: 6
@@ -367,152 +390,221 @@ KeyboardWindow {
       }
 
       // ══════════════════════════════
-      // ── Device list ──
+      // ── Device list / keybinds ──
       // ══════════════════════════════
-      ListView {
-        id: deviceList
+      Item {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        clip: true
-        spacing: 2
-        model: btWindow.sortedDevices
-        currentIndex: 0
-        highlightFollowsCurrentItem: true
-        keyNavigationEnabled: false
 
-        delegate: Item {
-          required property var modelData
-          required property int index
-          width: deviceList.width
-          height: 34
+        ListView {
+          id: deviceList
+          visible: !btWindow.showKeybinds
+          anchors.fill: parent
+          clip: true
+          spacing: 2
+          model: btWindow.sortedDevices
+          currentIndex: 0
+          highlightFollowsCurrentItem: true
+          keyNavigationEnabled: false
 
-          property bool isCurrent: index === deviceList.currentIndex
+          delegate: Item {
+            required property var modelData
+            required property int index
+            width: deviceList.width
+            height: 34
 
-          Rectangle {
-            anchors.fill: parent
-            radius: 6
-            color: isCurrent ? Theme.bgHover : "transparent"
-            opacity: isCurrent ? 0.8 : 0
-            Behavior on opacity { NumberAnimation { duration: 120 } }
-          }
+            property bool isCurrent: index === deviceList.currentIndex
 
-          RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            spacing: 8
-
-            // Selection cursor
-            Text {
-              text: isCurrent ? "▸" : " "
-              font.pixelSize: Theme.sizeListText
-              font.family: Theme.monoFont
-              color: Theme.accent
-              Layout.preferredWidth: 12
+            Rectangle {
+              anchors.fill: parent
+              radius: 6
+              color: isCurrent ? Theme.bgHover : "transparent"
+              opacity: isCurrent ? 0.8 : 0
+              Behavior on opacity { NumberAnimation { duration: 120 } }
             }
 
-            // Device type icon
-            Text {
-              text: btWindow.deviceIcon(modelData)
-              font.pixelSize: Theme.sizeDeviceIcon
-              font.family: Theme.iconFont
-              color: {
-                if (modelData.connected) return Theme.green
-                if (isCurrent) return Theme.accent
-                return Theme.textMuted
-              }
-              Layout.preferredWidth: 20
-              Behavior on color { ColorAnimation { duration: 120 } }
-            }
+            RowLayout {
+              anchors.fill: parent
+              anchors.leftMargin: 10
+              anchors.rightMargin: 10
+              spacing: 8
 
-            // Device name
-            Text {
-              text: modelData.name || modelData.address || "Unknown"
-              font.pixelSize: Theme.sizeListText
-              font.family: Theme.monoFont
-              color: {
-                if (modelData.connected) return Theme.devConnected
-                if (modelData.paired)    return Theme.devPaired
-                if (modelData.trusted)   return Theme.devTrusted
-                return "#88c0d0" // Hardcoded cyan for newly discovered
+              Text {
+                text: isCurrent ? "▸" : " "
+                font.pixelSize: Theme.sizeListText
+                font.family: Theme.monoFont
+                color: Theme.accent
+                Layout.preferredWidth: 12
               }
-              elide: Text.ElideRight
-              Layout.fillWidth: true
-              Behavior on color { ColorAnimation { duration: 120 } }
-            }
 
-            // Status Badges
-            Row {
-              spacing: 4
-              Layout.alignment: Qt.AlignVCenter
-              Rectangle {
-                visible: modelData.connected
-                color: "#a3be8c" // Hardcoded dull green
-                radius: 8
-                width: 16; height: 16
-                antialiasing: true
-                Text { text: "C"; font.pixelSize: 10; font.bold: true; color: Theme.bgPrimary; anchors.centerIn: parent }
+              Text {
+                text: btWindow.deviceIcon(modelData)
+                font.pixelSize: Theme.sizeDeviceIcon
+                font.family: Theme.iconFont
+                color: {
+                  if (modelData.connected) return Theme.green
+                  if (isCurrent) return Theme.accent
+                  return Theme.textMuted
+                }
+                Layout.preferredWidth: 20
+                Behavior on color { ColorAnimation { duration: 120 } }
               }
-              Item {
-                visible: modelData.trusted
-                width: 16; height: 16
+
+              Text {
+                text: modelData.name || modelData.address || "Unknown"
+                font.pixelSize: Theme.sizeListText
+                font.family: Theme.monoFont
+                color: {
+                  if (modelData.connected) return Theme.devConnected
+                  if (modelData.paired)    return Theme.devPaired
+                  if (modelData.trusted)   return Theme.devTrusted
+                  return "#88c0d0"
+                }
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+                Behavior on color { ColorAnimation { duration: 120 } }
+              }
+
+              Row {
+                spacing: 4
+                Layout.alignment: Qt.AlignVCenter
                 Rectangle {
-                  anchors.fill: parent
-                  color: "#81a1c1" // Hardcoded dull blue
-                  opacity: 0.2
+                  visible: modelData.connected
+                  color: "#a3be8c"
                   radius: 8
+                  width: 16; height: 16
                   antialiasing: true
+                  Text { text: "C"; font.pixelSize: 10; font.bold: true; color: Theme.bgPrimary; anchors.centerIn: parent }
+                }
+                Item {
+                  visible: modelData.trusted
+                  width: 16; height: 16
+                  Rectangle {
+                    anchors.fill: parent
+                    color: "#81a1c1"
+                    opacity: 0.2
+                    radius: 8
+                    antialiasing: true
+                  }
+                  Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.color: "#81a1c1"
+                    border.width: 1
+                    radius: 8
+                    antialiasing: true
+                  }
+                  Text { text: "T"; font.pixelSize: 10; font.bold: true; color: "#81a1c1"; anchors.centerIn: parent }
                 }
                 Rectangle {
-                  anchors.fill: parent
+                  visible: modelData.paired
                   color: "transparent"
-                  border.color: "#81a1c1"
+                  border.color: "#ebcb8b"
                   border.width: 1
                   radius: 8
+                  width: 16; height: 16
                   antialiasing: true
+                  Text { text: "P"; font.pixelSize: 10; font.bold: true; color: "#ebcb8b"; anchors.centerIn: parent }
                 }
-                Text { text: "T"; font.pixelSize: 10; font.bold: true; color: "#81a1c1"; anchors.centerIn: parent }
               }
-              Rectangle {
-                visible: modelData.paired
-                color: "transparent"
-                border.color: "#ebcb8b" // Hardcoded dull yellow
-                border.width: 1
-                radius: 8
-                width: 16; height: 16
-                antialiasing: true
-                Text { text: "P"; font.pixelSize: 10; font.bold: true; color: "#ebcb8b"; anchors.centerIn: parent }
+            }
+          }
+
+          Column {
+            anchors.centerIn: parent
+            visible: deviceList.count === 0
+            spacing: 12
+
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: (!btWindow.adapter || !btWindow.adapter.enabled) ? "bluetooth_disabled" : "bluetooth"
+              font.pixelSize: Theme.sizeEmptyIcon
+              font.family: Theme.iconFont
+              color: Theme.textDark
+              horizontalAlignment: Text.AlignHCenter
+            }
+
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: {
+                if (!btWindow.adapter || !btWindow.adapter.enabled)
+                  return "bluetooth off  ·  [o] to enable"
+                return "no devices  ·  [s] to scan"
               }
+              horizontalAlignment: Text.AlignHCenter
+              font.pixelSize: Theme.sizeEmptyState
+              font.family: Theme.monoFont
+              color: Theme.textMuted
             }
           }
         }
 
-        // ── Empty state ──
-        Column {
-          anchors.centerIn: parent
-          visible: deviceList.count === 0
-          spacing: 12
+        // ── Keybinds overlay ──
+        Rectangle {
+          visible: btWindow.showKeybinds
+          anchors.fill: parent
+          color: Theme.bgPrimary
+          radius: 6
 
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: (!btWindow.adapter || !btWindow.adapter.enabled) ? "bluetooth_disabled" : "bluetooth"
-            font.pixelSize: Theme.sizeEmptyIcon
-            font.family: Theme.iconFont
-            color: Theme.textDark
-            horizontalAlignment: Text.AlignHCenter
-          }
+          ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 6
 
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: {
-              if (!btWindow.adapter || !btWindow.adapter.enabled)
-                return "bluetooth off  ·  [p] to enable"
-              return "no devices  ·  [s] to scan"
+            Text {
+              text: "Keybinds"
+              font.pixelSize: Theme.sizeListText
+              font.family: Theme.monoFont
+              font.bold: true
+              color: Theme.accent
+              Layout.alignment: Qt.AlignHCenter
+              bottomPadding: 8
             }
-            horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: Theme.sizeEmptyState
-            font.family: Theme.monoFont
-            color: Theme.textMuted
+
+            Repeater {
+              model: [
+                {k: "j/k", d: "navigate"},
+                {k: "g", d: "first / last"},
+                {k: "c/enter", d: "connect / disconnect"},
+                {k: "t", d: "toggle trust"},
+                {k: "p", d: "toggle pair"},
+                {k: "x", d: "remove device"},
+                {k: "o", d: "toggle power"},
+                {k: "s", d: "start scan"},
+                {k: "r", d: "reconnect recent"},
+                {k: "h", d: "hide on connect"},
+                {k: "q/esc", d: "close"},
+                {k: "/", d: "hide this view"},
+              ]
+
+              delegate: Row {
+                spacing: 16
+                Layout.alignment: Qt.AlignHCenter
+
+                Text {
+                  text: modelData.k
+                  font.family: Theme.monoFont
+                  font.bold: true
+                  color: Theme.accent
+                  horizontalAlignment: Text.AlignRight
+                  width: 80
+                }
+
+                Text {
+                  text: modelData.d
+                  font.family: Theme.monoFont
+                  color: Theme.textSecondary
+                }
+              }
+            }
+
+            Text {
+              text: "[ / ] to hide"
+              font.pixelSize: Theme.sizeFooter
+              font.family: Theme.monoFont
+              color: Theme.textMuted
+              Layout.alignment: Qt.AlignHCenter
+              topPadding: 8
+            }
           }
         }
       }
