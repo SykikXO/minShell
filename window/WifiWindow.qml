@@ -17,6 +17,19 @@ KeyboardWindow {
   property bool passwordMode: false
   property string pendingSsid: ""
 
+  overlayKeybinds: [
+    {k: "j/k", d: "navigate"},
+    {k: "g", d: "first / last"},
+    {k: "enter", d: "connect / disconnect"},
+    {k: "p", d: "toggle power"},
+    {k: "s", d: "scan"},
+    {k: "d", d: "disconnect"},
+    {k: "r", d: "refresh"},
+    {k: "f", d: "forget network"},
+    {k: "q/esc", d: "close"},
+    {k: "/", d: "hide this view"},
+  ]
+
   // ── Derived state ──
   property color headerColor: {
     if (!wifi.powered) return Theme.red
@@ -106,6 +119,10 @@ KeyboardWindow {
             var n = wifi.networks.get(networkList.currentIndex)
             if (n && n.known) wifi.forget(n.ssid)
           }
+          event.accepted = true
+          break
+        case Qt.Key_Slash:
+          showKeybinds = !showKeybinds
           event.accepted = true
           break
         case Qt.Key_Q:
@@ -259,6 +276,7 @@ KeyboardWindow {
       // ══════════════════════════════
       ListView {
         id: networkList
+        visible: !showKeybinds
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
