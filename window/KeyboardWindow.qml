@@ -66,6 +66,74 @@ PanelWindow {
       anchors.fill: parent
       focus: true
     }
+
+    // ── Keybind overlay (inside popup) ──
+    Rectangle {
+      id: overlayRect
+      visible: kbWindow.showKeybinds
+      anchors.fill: parent
+      color: Theme.bgPrimary
+      radius: 12
+      z: 10
+
+      Column {
+        id: overlayCol
+        anchors {
+          horizontalCenter: parent.horizontalCenter
+          verticalCenter: parent.verticalCenter
+        }
+        spacing: 4
+        width: parent.width - 40
+
+        Text {
+          text: "Keybinds"
+          font.pixelSize: Theme.sizeHeaderTitle
+          font.family: Theme.monoFont
+          font.bold: true
+          color: "#ffffff"
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          bottomPadding: 12
+        }
+
+        Repeater {
+          model: kbWindow.overlayKeybinds
+
+          delegate: Row {
+            x: overlayCol.width / 2 - keyText.width - (overlayRect.width - overlayCol.width)
+            spacing: 20
+
+            Text {
+              id: keyText
+              text: modelData.k
+              font.family: Theme.monoFont
+              font.bold: true
+              color: "#ffffff"
+              horizontalAlignment: Text.AlignRight
+              width: 90
+              font.pixelSize: Theme.sizeListText
+            }
+
+            Text {
+              text: modelData.d
+              font.family: Theme.monoFont
+              color: "#ffffff"
+              font.pixelSize: Theme.sizeListText
+            }
+          }
+        }
+
+        Text {
+          text: "[ / ] to hide"
+          font.pixelSize: Theme.sizeStatusText
+          font.family: Theme.monoFont
+          color: "#888888"
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          topPadding: 16
+        }
+      }
+    }
   }
 
   // Force focus when visible; reset overlay on close
@@ -74,63 +142,6 @@ PanelWindow {
       contentScope.forceActiveFocus()
     } else {
       showKeybinds = false
-    }
-  }
-
-  // ── Keybind overlay ──
-  Rectangle {
-    visible: kbWindow.showKeybinds
-    anchors.fill: parent
-    color: Theme.bgPrimary
-    radius: 12
-    z: 10
-
-    ColumnLayout {
-      anchors.centerIn: parent
-      spacing: 6
-
-      Text {
-        text: "Keybinds"
-        font.pixelSize: Theme.sizeListText
-        font.family: Theme.monoFont
-        font.bold: true
-        color: Theme.accent
-        Layout.alignment: Qt.AlignHCenter
-        bottomPadding: 8
-      }
-
-      Repeater {
-        model: kbWindow.overlayKeybinds
-
-        delegate: Row {
-          spacing: 16
-          Layout.alignment: Qt.AlignHCenter
-
-          Text {
-            text: modelData.k
-            font.family: Theme.monoFont
-            font.bold: true
-            color: Theme.accent
-            horizontalAlignment: Text.AlignRight
-            width: 80
-          }
-
-          Text {
-            text: modelData.d
-            font.family: Theme.monoFont
-            color: Theme.textSecondary
-          }
-        }
-      }
-
-      Text {
-        text: "[ / ] to hide"
-        font.pixelSize: Theme.sizeFooter
-        font.family: Theme.monoFont
-        color: Theme.textMuted
-        Layout.alignment: Qt.AlignHCenter
-        topPadding: 8
-      }
     }
   }
 }
