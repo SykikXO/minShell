@@ -2,38 +2,29 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
-import Quickshell.Bluetooth
 import "../"
 import "../components"
+import "../window"
 
 SidebarWidget {
   id: root
-  // Matching network/audio style
   bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
-  
-  
-  
-  property var connectedDevice: {
-    var devs = Bluetooth.devices.values
-    for (var i = 0; i < devs.length; i++) {
-      if (devs[i].connected) return devs[i]
-    }
-    return null
-  }
 
-  property bool isConnected: connectedDevice !== null
+  BluetoothBackend { id: bt }
+
+  property bool isConnected: bt.connected
   property string headsetBattery: ""
-  
+
   property string deviceName: {
-    if (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.enabled) return "Bluetooth Off"
-    if (!connectedDevice) return "Disconnected"
-    let name = connectedDevice.name || "Unknown Device"
+    if (!bt.powered) return "Bluetooth Off"
+    if (!bt.connected) return "Disconnected"
+    let name = bt.connectedDeviceName || "Unknown Device"
     if (headsetBattery !== "") {
       return name + " (" + headsetBattery + ")"
     }
     return name
   }
-  
+
   Process {
     id: battProc
     command: ["bash", "-c", "upower -e | grep 'headset' | xargs -I {} upower -i {} | awk '/percentage:/{print $2}'"]
@@ -55,7 +46,7 @@ SidebarWidget {
   content: Item {
     width: parent.width
     height: 30
-    
+
     Text {
       id: icon
       anchors.centerIn: parent
@@ -63,20 +54,20 @@ SidebarWidget {
       font.pixelSize: Theme.sizeIcon
       font.bold: true
       color: root.isConnected ? (hover.hovered ? Theme.c(15) : Theme.textPrimary) : Theme.c(1)
-      text: (!Bluetooth.defaultAdapter || !Bluetooth.defaultAdapter.enabled) ? "bluetooth_disabled" : (root.isConnected ? "bluetooth_connected" : "bluetooth")
+      text: !bt.powered ? "bluetooth_disabled" : (root.isConnected ? "bluetooth_connected" : "bluetooth")
     }
-    
+
     HoverHandler { id: hover }
-    
+
     TapHandler {
       onTapped: proc.running = true
     }
-    
+
     Process {
       id: proc
       command: ["qs", "ipc", "call", "shell", "bluetooth"]
     }
-    
+
     SidebarTooltip {
       visible: hover.hovered
       text: root.deviceName

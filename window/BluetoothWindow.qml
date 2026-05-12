@@ -1,4 +1,3 @@
-import Quickshell.Bluetooth
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
@@ -10,24 +9,49 @@ KeyboardWindow {
   popupWidth: 480
   popupHeight: 560
 
-  // ── State ──
-  property var adapter: Bluetooth.defaultAdapter
-  property bool hideOnConnect: false
-  property bool showKeybinds: false
-  property string recentAddress: ""
-  property int _refreshTick: 0
+  BluetoothBackend { id: bt }
 
+  // ── State ──
+  property bool hideOnConnect: false
+  property string recentAddress: ""
   Timer {
     interval: 1000
     running: true
     repeat: true
-    onTriggered: btWindow._refreshTick++
+    onTriggered: btWindow._rebuildSorted()
   }
 
+  overlayKeybinds: [
+    {k: "j/k", d: "navigate"},
+    {k: "g", d: "first / last"},
+    {k: "c/enter", d: "connect / disconnect"},
+    {k: "t", d: "toggle trust"},
+    {k: "p", d: "toggle pair"},
+    {k: "x", d: "remove device"},
+    {k: "o", d: "toggle power"},
+    {k: "s", d: "start scan"},
+    {k: "r", d: "reconnect recent"},
+    {k: "h", d: "hide on connect"},
+    {k: "q/esc", d: "close"},
+    {k: "/", d: "hide this view"},
+  ]
+
   // ── Derived state ──
-  property var sortedDevices: {
-    var _ = btWindow._refreshTick
-    var devs = Bluetooth.devices.values.slice()
+  property var sortedDevices: []
+
+  function _rebuildSorted() {
+    var devs = []
+    for (var i = 0; i < bt.devices.count; i++) {
+      var d = bt.devices.get(i)
+      devs.push({
+        address: d.address,
+        name: d.name,
+        connected: d.connected,
+        paired: d.paired,
+        trusted: d.trusted,
+        icon: d.icon
+      })
+    }
     devs.sort((a, b) => {
       var scoreA = 0
       if (a.connected) scoreA += 1000
@@ -42,22 +66,15 @@ KeyboardWindow {
       if (scoreA !== scoreB) return scoreB - scoreA
       return (a.name || a.address || "").localeCompare(b.name || b.address || "")
     })
-    return devs
-  }
-
-  property var connectedDevice: {
-    var devs = Bluetooth.devices.values
-    for (var i = 0; i < devs.length; i++) {
-      if (devs[i].connected) return devs[i]
-    }
-    return null
+    btWindow.sortedDevices = devs
   }
 
   property color headerColor: {
-    if (!adapter || !adapter.enabled) return Theme.red
-    if (connectedDevice) return Theme.green
+    if (!bt.powered) return Theme.red
+    if (bt.connected) return Theme.green
     return Theme.accent
   }
+
 
   // ── Icon helpers ──
   function deviceIcon(dev) {
@@ -131,7 +148,7 @@ KeyboardWindow {
     var devs = sortedDevices
     for (var i = 0; i < devs.length; i++) {
       if (devs[i].address === recentAddress) {
-        devs[i].connect()
+        bt.connectDevice(devs[i].address)
         return
       }
     }
@@ -170,11 +187,10 @@ KeyboardWindow {
         case Qt.Key_Enter:
           if (dev) {
             if (dev.connected) {
-              dev.disconnect()
+              bt.disconnectDevice(dev.address)
             } else {
-              if (!dev.paired) dev.pair()
-              dev.connect()
-              dev.trusted = true
+              bt.connectDevice(dev.address)
+              bt.trustDevice(dev.address, true)
               saveRecent(dev.address)
               if (hideOnConnect) btWindow.visible = false
             }
@@ -182,32 +198,32 @@ KeyboardWindow {
           event.accepted = true
           break
         case Qt.Key_T:
-          if (dev) dev.trusted = !dev.trusted
+          if (dev) bt.trustDevice(dev.address, !dev.trusted)
           event.accepted = true
           break
         case Qt.Key_P:
           if (dev) {
             if (dev.paired) {
-              dev.forget()
+              bt.forgetDevice(dev.address)
               deviceList.currentIndex = Math.max(0, deviceList.currentIndex - 1)
             } else {
-              dev.pair()
+              bt.pairDevice(dev.address)
             }
           }
           event.accepted = true
           break
         case Qt.Key_O:
-          if (adapter) adapter.enabled = !adapter.enabled
+          bt.togglePower()
           event.accepted = true
           break
         case Qt.Key_S:
-          if (!adapter.discovering) adapter.discovering = true
+          if (!bt.discovering) bt.scan()
           event.accepted = true
           break
         case Qt.Key_X:
           if (dev) {
-            if (dev.connected) dev.disconnect()
-            dev.forget()
+            if (dev.connected) bt.disconnectDevice(dev.address)
+            bt.forgetDevice(dev.address)
           }
           deviceList.currentIndex = Math.max(0, deviceList.currentIndex - 1)
           event.accepted = true
@@ -256,16 +272,16 @@ KeyboardWindow {
 
           SequentialAnimation on opacity {
             id: blinkAnim
-            running: btWindow.adapter ? btWindow.adapter.discovering : false
+            running: bt.discovering
             loops: Animation.Infinite
             NumberAnimation { to: 0.3; duration: 700; easing.type: Easing.InOutSine }
             NumberAnimation { to: 1.0; duration: 700; easing.type: Easing.InOutSine }
           }
 
           Connections {
-            target: btWindow.adapter
+            target: bt
             function onDiscoveringChanged() {
-              if (!btWindow.adapter.discovering) headerIcon.opacity = 1.0
+              if (!bt.discovering) headerIcon.opacity = 1.0
             }
           }
         }
@@ -287,14 +303,14 @@ KeyboardWindow {
           radius: 5
           Layout.alignment: Qt.AlignVCenter
           color: {
-            if (!btWindow.adapter || !btWindow.adapter.enabled) return Theme.red
-            if (btWindow.connectedDevice) return Theme.green
+            if (!bt.powered) return Theme.red
+            if (bt.connected) return Theme.green
             return Theme.accent
           }
           Behavior on color { ColorAnimation { duration: 300 } }
 
           SequentialAnimation on scale {
-            running: btWindow.adapter ? btWindow.adapter.discovering : false
+            running: bt.discovering
             loops: Animation.Infinite
             NumberAnimation { to: 1.4; duration: 600; easing.type: Easing.InOutSine }
             NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
@@ -310,28 +326,16 @@ KeyboardWindow {
         Text {
           font.pixelSize: Theme.sizeStatusText
           font.family: Theme.monoFont
-          color: btWindow.connectedDevice ? Theme.textSecondary : Theme.textMuted
-          text: {
-            var dev = btWindow.connectedDevice
-            if (!dev) return "no device connected"
-            return dev.name || "Unknown"
-          }
+          color: bt.connected ? Theme.textSecondary : Theme.textMuted
+          text: bt.connected ? bt.connectedDeviceName : "no device connected"
         }
 
-        Text {
-          visible: btWindow.connectedDevice && btWindow.connectedDevice.batteryAvailable
-          font.pixelSize: Theme.sizeStatusText
-          font.family: Theme.monoFont
-          color: Theme.textSecondary
-          textFormat: Text.RichText
-          text: {
-            var dev = btWindow.connectedDevice
-            if (dev && dev.batteryAvailable) {
-              var pct = Math.round(dev.battery * 100)
-              return "<span style=\"font-family: '" + Theme.iconFont + "';\">" + btWindow.batteryIcon(pct) + "</span>&nbsp;" + pct + "%"
-            }
-            return ""
-          }
+        Rectangle {
+          visible: bt.connected
+          width: 8; height: 8
+          radius: 4
+          color: Theme.green
+          anchors.verticalCenter: parent.verticalCenter
         }
       }
 
@@ -390,7 +394,7 @@ KeyboardWindow {
       }
 
       // ══════════════════════════════
-      // ── Device list / keybinds ──
+      // ── Device list ──
       // ══════════════════════════════
       Item {
         Layout.fillWidth: true
@@ -517,7 +521,7 @@ KeyboardWindow {
 
             Text {
               anchors.horizontalCenter: parent.horizontalCenter
-              text: (!btWindow.adapter || !btWindow.adapter.enabled) ? "bluetooth_disabled" : "bluetooth"
+              text: !bt.powered ? "bluetooth_disabled" : "bluetooth"
               font.pixelSize: Theme.sizeEmptyIcon
               font.family: Theme.iconFont
               color: Theme.textDark
@@ -526,11 +530,7 @@ KeyboardWindow {
 
             Text {
               anchors.horizontalCenter: parent.horizontalCenter
-              text: {
-                if (!btWindow.adapter || !btWindow.adapter.enabled)
-                  return "bluetooth off  ·  [o] to enable"
-                return "no devices  ·  [s] to scan"
-              }
+              text: !bt.powered ? "bluetooth off  ·  [o] to enable" : "no devices  ·  [s] to scan"
               horizontalAlignment: Text.AlignHCenter
               font.pixelSize: Theme.sizeEmptyState
               font.family: Theme.monoFont
@@ -539,74 +539,7 @@ KeyboardWindow {
           }
         }
 
-        // ── Keybinds overlay ──
-        Rectangle {
-          visible: btWindow.showKeybinds
-          anchors.fill: parent
-          color: Theme.bgPrimary
-          radius: 6
 
-          ColumnLayout {
-            anchors.centerIn: parent
-            spacing: 6
-
-            Text {
-              text: "Keybinds"
-              font.pixelSize: Theme.sizeListText
-              font.family: Theme.monoFont
-              font.bold: true
-              color: Theme.accent
-              Layout.alignment: Qt.AlignHCenter
-              bottomPadding: 8
-            }
-
-            Repeater {
-              model: [
-                {k: "j/k", d: "navigate"},
-                {k: "g", d: "first / last"},
-                {k: "c/enter", d: "connect / disconnect"},
-                {k: "t", d: "toggle trust"},
-                {k: "p", d: "toggle pair"},
-                {k: "x", d: "remove device"},
-                {k: "o", d: "toggle power"},
-                {k: "s", d: "start scan"},
-                {k: "r", d: "reconnect recent"},
-                {k: "h", d: "hide on connect"},
-                {k: "q/esc", d: "close"},
-                {k: "/", d: "hide this view"},
-              ]
-
-              delegate: Row {
-                spacing: 16
-                Layout.alignment: Qt.AlignHCenter
-
-                Text {
-                  text: modelData.k
-                  font.family: Theme.monoFont
-                  font.bold: true
-                  color: Theme.accent
-                  horizontalAlignment: Text.AlignRight
-                  width: 80
-                }
-
-                Text {
-                  text: modelData.d
-                  font.family: Theme.monoFont
-                  color: Theme.textSecondary
-                }
-              }
-            }
-
-            Text {
-              text: "[ / ] to hide"
-              font.pixelSize: Theme.sizeFooter
-              font.family: Theme.monoFont
-              color: Theme.textMuted
-              Layout.alignment: Qt.AlignHCenter
-              topPadding: 8
-            }
-          }
-        }
       }
 
       // ── Footer ──
@@ -623,7 +556,7 @@ KeyboardWindow {
 
         Text {
           Layout.fillWidth: true
-          text: btWindow.adapter ? btWindow.adapter.name : "no adapter"
+          text: bt.adapterName.length > 0 ? bt.adapterName : "no adapter"
           font.pixelSize: Theme.sizeFooter
           font.family: Theme.monoFont
           color: Theme.textDark
