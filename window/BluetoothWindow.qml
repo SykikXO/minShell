@@ -14,9 +14,18 @@ KeyboardWindow {
   property var adapter: Bluetooth.defaultAdapter
   property bool hideOnConnect: false
   property string recentAddress: ""
+  property int _refreshTick: 0
+
+  Timer {
+    interval: 1000
+    running: true
+    repeat: true
+    onTriggered: btWindow._refreshTick++
+  }
 
   // ── Derived state ──
   property var sortedDevices: {
+    var _ = btWindow._refreshTick
     var devs = Bluetooth.devices.values.slice()
     devs.sort((a, b) => {
       var scoreA = 0
@@ -118,7 +127,7 @@ KeyboardWindow {
 
   function reconnectRecent() {
     if (!recentAddress) return
-    var devs = Bluetooth.devices.values
+    var devs = sortedDevices
     for (var i = 0; i < devs.length; i++) {
       if (devs[i].address === recentAddress) {
         devs[i].connect()
@@ -133,7 +142,8 @@ KeyboardWindow {
     focus: true
 
     Keys.onPressed: (event) => {
-      var count = Bluetooth.devices.values.length
+      var count = btWindow.sortedDevices.length
+      var dev = btWindow.sortedDevices[deviceList.currentIndex]
       switch (event.key) {
         case Qt.Key_J:
         case Qt.Key_Down:
@@ -156,14 +166,11 @@ KeyboardWindow {
           break
         case Qt.Key_Return:
         case Qt.Key_Enter:
-          var dev = Bluetooth.devices.values[deviceList.currentIndex]
           if (dev) {
             if (dev.connected) {
               dev.disconnect()
             } else {
-              if(dev.paired == false){
-                dev.pair()
-              }
+              if (!dev.paired) dev.pair()
               dev.connect()
               dev.trusted = true
               saveRecent(dev.address)
@@ -177,21 +184,17 @@ KeyboardWindow {
           event.accepted = true
           break
         case Qt.Key_S:
-          if (adapter.discovering == false) adapter.discovering = true
+          if (!adapter.discovering) adapter.discovering = true
           event.accepted = true
           break
         case Qt.Key_X:
-          var dev = Bluetooth.devices.values[deviceList.currentIndex]
           if (dev) {
-            if (dev.connected) {
-              dev.disconnect()
-            }
+            if (dev.connected) dev.disconnect()
             dev.forget()
           }
-          deviceList.currentIndex--;
+          deviceList.currentIndex = Math.max(0, deviceList.currentIndex - 1)
           event.accepted = true
           break
-
         case Qt.Key_R:
           reconnectRecent()
           event.accepted = true
@@ -535,7 +538,7 @@ KeyboardWindow {
         }
 
         Text {
-          text: Bluetooth.devices.values.length + " devices"
+          text: btWindow.sortedDevices.length + " devices"
           font.pixelSize: Theme.sizeFooter
           font.family: Theme.monoFont
           color: Theme.textDark

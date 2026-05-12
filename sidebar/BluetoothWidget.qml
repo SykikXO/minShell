@@ -46,7 +46,7 @@ SidebarWidget {
   }
 
   Timer {
-    interval: hover.hovered ? 500 : 5000
+    interval: hover.hovered ? 3000 : 5000
     running: true
     repeat: true
     onTriggered: battProc.running = true
