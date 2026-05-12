@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Layouts
 import "../"
 PanelWindow {
   id: kbWindow
@@ -25,6 +26,10 @@ PanelWindow {
   // ── Popup dimensions (override in child) ──
   property int popupWidth: 380
   property int popupHeight: 520
+
+  // ── Keybind overlay (shared by all keyboard-driven windows) ──
+  property bool showKeybinds: false
+  property var overlayKeybinds: []
 
   // Colors are now in Theme.qml
 
@@ -63,10 +68,69 @@ PanelWindow {
     }
   }
 
-  // Force focus when visible
+  // Force focus when visible; reset overlay on close
   onVisibleChanged: {
     if (visible) {
       contentScope.forceActiveFocus()
+    } else {
+      showKeybinds = false
+    }
+  }
+
+  // ── Keybind overlay ──
+  Rectangle {
+    visible: kbWindow.showKeybinds
+    anchors.fill: parent
+    color: Theme.bgPrimary
+    radius: 12
+    z: 10
+
+    ColumnLayout {
+      anchors.centerIn: parent
+      spacing: 6
+
+      Text {
+        text: "Keybinds"
+        font.pixelSize: Theme.sizeListText
+        font.family: Theme.monoFont
+        font.bold: true
+        color: Theme.accent
+        Layout.alignment: Qt.AlignHCenter
+        bottomPadding: 8
+      }
+
+      Repeater {
+        model: kbWindow.overlayKeybinds
+
+        delegate: Row {
+          spacing: 16
+          Layout.alignment: Qt.AlignHCenter
+
+          Text {
+            text: modelData.k
+            font.family: Theme.monoFont
+            font.bold: true
+            color: Theme.accent
+            horizontalAlignment: Text.AlignRight
+            width: 80
+          }
+
+          Text {
+            text: modelData.d
+            font.family: Theme.monoFont
+            color: Theme.textSecondary
+          }
+        }
+      }
+
+      Text {
+        text: "[ / ] to hide"
+        font.pixelSize: Theme.sizeFooter
+        font.family: Theme.monoFont
+        color: Theme.textMuted
+        Layout.alignment: Qt.AlignHCenter
+        topPadding: 8
+      }
     }
   }
 }
