@@ -73,10 +73,13 @@ KeyboardWindow {
           event.accepted = true
           break
         case Qt.Key_G:
-          if (event.modifiers & Qt.ShiftModifier)
+          if (event.modifiers & Qt.ShiftModifier) {
             networkList.currentIndex = count - 1
-          else
+            networkList.positionViewAtEnd()
+          } else {
             networkList.currentIndex = 0
+            networkList.positionViewAtBeginning()
+          }
           event.accepted = true
           break
         case Qt.Key_C:
@@ -459,14 +462,14 @@ KeyboardWindow {
 
             onAccepted: {
               if (text.length > 0) {
+                wifi.connectionError = ""
                 wifi.connectWithPassword(wifiWindow.pendingSsid, text)
-                text = ""
-                wifiWindow.passwordMode = false
               }
             }
 
             Keys.onEscapePressed: {
               text = ""
+              wifi.connectionError = ""
               wifiWindow.passwordMode = false
             }
           }
@@ -480,6 +483,18 @@ KeyboardWindow {
             Layout.maximumWidth: 120
           }
         }
+      }
+
+      // ── Connection error ──
+      Text {
+        Layout.fillWidth: true
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: Theme.sizeStatusText
+        font.family: Theme.monoFont
+        color: Theme.red
+        text: wifi.connectionError
+        visible: wifi.connectionError.length > 0
+        wrapMode: Text.WordWrap
       }
 
       // ── Footer ──

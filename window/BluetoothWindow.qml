@@ -176,10 +176,13 @@ KeyboardWindow {
           event.accepted = true
           break
         case Qt.Key_G:
-          if (event.modifiers & Qt.ShiftModifier)
+          if (event.modifiers & Qt.ShiftModifier) {
             deviceList.currentIndex = count - 1
-          else
+            deviceList.positionViewAtEnd()
+          } else {
             deviceList.currentIndex = 0
+            deviceList.positionViewAtBeginning()
+          }
           event.accepted = true
           break
         case Qt.Key_C:

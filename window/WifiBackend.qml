@@ -20,10 +20,18 @@ QtObject {
   // Each entry: { ssid, signal, security, connected, known }
   property ListModel networks: ListModel {}
 
+  // ── Error state ──
+  property string connectionError: ""
+
   // ── Internal ──
   property bool _useIwctl: false
   property bool _useNmcli: false
   property var  _pendingPsk: null   // { ssid, psk } for deferred connect
+
+  // Shell-escape a string for use in bash -c
+  function _shquote(s) {
+    return "'" + String(s).replace(/'/g, "'\\''") + "'"
+  }
 
   // ══════════════════════════════════════════
   // ── Backend detection at startup ──
@@ -103,29 +111,31 @@ QtObject {
   }
 
   function connect(ssid) {
+    backend.connectionError = ""
     if (_useIwctl) {
       _connectProc.command = ["iwctl", "station", device, "connect", ssid]
     } else {
-      _connectProc.command = ["nmcli", "device", "wifi", "connect", ssid]
+      _connectProc.command = ["bash", "-c", "nmcli device wifi connect " + _shquote(ssid)]
     }
     _connectProc.running = true
   }
 
   function connectWithPassword(ssid, psk) {
+    backend.connectionError = ""
     if (_useIwctl) {
-      // iwctl needs passphrase via --passphrase flag
       _connectProc.command = ["iwctl", "--passphrase", psk, "station", device, "connect", ssid]
     } else {
-      _connectProc.command = ["nmcli", "device", "wifi", "connect", ssid, "password", psk]
+      _connectProc.command = ["bash", "-c", "nmcli device wifi connect " + _shquote(ssid) + " password " + _shquote(psk)]
     }
     _connectProc.running = true
   }
 
   function disconnect() {
+    backend.connectionError = ""
     if (_useIwctl) {
       _disconnectProc.command = ["iwctl", "station", device, "disconnect"]
     } else {
-      _disconnectProc.command = ["nmcli", "device", "disconnect", device]
+      _disconnectProc.command = ["bash", "-c", "nmcli device disconnect " + _shquote(device)]
     }
     _disconnectProc.running = true
   }
@@ -134,7 +144,7 @@ QtObject {
     if (_useIwctl) {
       _forgetProc.command = ["iwctl", "known-networks", ssid, "forget"]
     } else {
-      _forgetProc.command = ["bash", "-c", "nmcli connection delete id '" + ssid + "' 2>/dev/null || true"]
+      _forgetProc.command = ["bash", "-c", "nmcli connection delete id " + _shquote(ssid)]
     }
     _forgetProc.running = true
   }
@@ -184,6 +194,15 @@ QtObject {
         backend._refreshDelayed.running = true
       }
     }
+    stderr: StdioCollector {
+      onStreamFinished: {
+        var err = this.text.trim()
+        if (err.length > 0) {
+          backend.connectionError = err
+          console.warn("WifiBackend connect error:", err)
+        }
+      }
+    }
   }
 
   // ── Disconnect process ──
@@ -192,6 +211,12 @@ QtObject {
     stdout: StdioCollector {
       onStreamFinished: {
         backend._refreshDelayed.running = true
+      }
+    }
+    stderr: StdioCollector {
+      onStreamFinished: {
+        var err = this.text.trim()
+        if (err.length > 0) console.warn("WifiBackend disconnect error:", err)
       }
     }
   }
@@ -214,6 +239,12 @@ QtObject {
         backend._refreshDelayed.running = true
       }
     }
+    stderr: StdioCollector {
+      onStreamFinished: {
+        var err = this.text.trim()
+        if (err.length > 0) console.warn("WifiBackend power error:", err)
+      }
+    }
   }
 
   // ── Delayed refresh (give daemons time to react) ──
@@ -234,7 +265,7 @@ QtObject {
       ]
     } else {
       _statusProc.command = ["bash", "-c",
-        "nmcli -t -f WIFI radio; nmcli -t -f GENERAL.STATE,GENERAL.CONNECTION device show " + device + " 2>/dev/null"
+        "nmcli -t -f WIFI radio; nmcli -t -f GENERAL.STATE,GENERAL.CONNECTION device show '" + device + "' 2>/dev/null"
       ]
     }
     _statusProc.running = true
@@ -276,14 +307,23 @@ QtObject {
       if (lines2.length > 0) {
         powered = (lines2[0].trim().toLowerCase() === "enabled")
       }
+      var stateConnected = false
+      var stateSsid = ""
       for (var j = 1; j < lines2.length; j++) {
         var l = lines2[j]
+        if (l.indexOf("GENERAL.STATE") >= 0) {
+          var stateVal = l.split(":").slice(1).join(":").trim()
+          // nmcli state: 100 = connected, 70 = connecting, 30 = disconnected
+          var stateNum = parseInt(stateVal)
+          stateConnected = (stateNum === 100)
+        }
         if (l.indexOf("GENERAL.CONNECTION") >= 0) {
-          var val = l.split(":").slice(1).join(":").trim()
-          connected = (val !== "" && val !== "--")
-          connectedSsid = connected ? val : ""
+          stateSsid = l.split(":").slice(1).join(":").trim()
         }
       }
+      connected = stateConnected
+      connectedSsid = connected && stateSsid !== "--" ? stateSsid : ""
+      if (connected || stateSsid === "--") backend.connectionError = ""
     }
   }
 
@@ -299,7 +339,7 @@ QtObject {
       ]
     } else {
       _networkProc.command = ["bash", "-c",
-        "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null"
+        "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null; echo '===KNOWN==='; nmcli -t -f NAME connection show 2>/dev/null"
       ]
     }
     _networkProc.running = true
@@ -320,7 +360,14 @@ QtObject {
     if (_useIwctl) {
       _parseIwctlNetworks(text)
     } else {
-      _parseNmcliNetworks(text)
+      var sections = text.split("===KNOWN===")
+      var knownSsids = {}
+      var knownLines = (sections.length > 1 ? sections[1] : "").split("\n")
+      for (var k = 0; k < knownLines.length; k++) {
+        var kl = knownLines[k].trim()
+        if (kl.length > 0) knownSsids[kl] = true
+      }
+      _parseNmcliNetworks(sections[0], knownSsids)
     }
   }
 
@@ -415,7 +462,7 @@ QtObject {
     }
   }
 
-  function _parseNmcliNetworks(text) {
+  function _parseNmcliNetworks(text, knownSsids) {
     // nmcli -t format: IN-USE:SSID:SIGNAL:SECURITY
     var lines = text.split("\n")
     var seenSsids = {}
@@ -456,7 +503,7 @@ QtObject {
         signal: sig,
         security: (security === "" || security === "--") ? "Open" : security,
         connected: inUse,
-        known: inUse  // nmcli doesn't easily distinguish "known" in wifi list
+        known: inUse || (knownSsids && knownSsids[ssid] === true)
       })
     }
 
