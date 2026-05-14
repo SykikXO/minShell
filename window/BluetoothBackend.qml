@@ -214,8 +214,20 @@ QtObject {
   property var _connectProc: Process {
     running: false
     stdout: StdioCollector {
-      onStreamFinished: backend._rebuildDelayed.running = true
+      onStreamFinished: {
+        backend._normalizeBtVolume.running = true
+        backend._rebuildDelayed.running = true
+      }
     }
+  }
+
+  property var _normalizeBtVolume: Process {
+    command: ["bash", "-c",
+      "sleep 1.5; " +
+      "pactl list sinks short | grep bluez | cut -f1 | " +
+      "while read id; do pactl set-sink-volume \"$id\" 30%; done " +
+      "2>/dev/null || true"]
+    running: false
   }
   property var _disconnectProc: Process {
     running: false
