@@ -20,12 +20,11 @@ KeyboardWindow {
   overlayKeybinds: [
     {k: "j/k", d: "navigate"},
     {k: "g", d: "first / last"},
-    {k: "enter", d: "connect / disconnect"},
-    {k: "p", d: "toggle power"},
+    {k: "c/enter", d: "connect / disconnect"},
+    {k: "o", d: "toggle power"},
     {k: "s", d: "scan"},
-    {k: "d", d: "disconnect"},
-    {k: "r", d: "refresh"},
-    {k: "f", d: "forget network"},
+    {k: "x", d: "forget network"},
+    {k: "r", d: "rescan"},
     {k: "q/esc", d: "close"},
     {k: "/", d: "hide this view"},
   ]
@@ -80,6 +79,7 @@ KeyboardWindow {
             networkList.currentIndex = 0
           event.accepted = true
           break
+        case Qt.Key_C:
         case Qt.Key_Return:
         case Qt.Key_Enter:
           if (count > 0) {
@@ -98,7 +98,7 @@ KeyboardWindow {
           }
           event.accepted = true
           break
-        case Qt.Key_P:
+        case Qt.Key_O:
           wifi.togglePower()
           event.accepted = true
           break
@@ -106,15 +106,11 @@ KeyboardWindow {
           wifi.scan()
           event.accepted = true
           break
-        case Qt.Key_D:
-          wifi.disconnect()
-          event.accepted = true
-          break
         case Qt.Key_R:
           wifi.refresh()
           event.accepted = true
           break
-        case Qt.Key_F:
+        case Qt.Key_X:
           if (count > 0) {
             var n = wifi.networks.get(networkList.currentIndex)
             if (n && n.known) wifi.forget(n.ssid)
@@ -228,12 +224,11 @@ KeyboardWindow {
         
         Repeater {
           model: [
-            {k: "p", d: "power"},
+            {k: "c", d: "conn"},
+            {k: "o", d: "power"},
             {k: "s", d: "scan"},
-            {k: "d", d: "disc"},
-            {k: "r", d: "ref"},
-            {k: "f", d: "forget"},
-            {k: "q", d: "quit"}
+            {k: "x", d: "forget"},
+            {k: "/", d: "keys"},
           ]
           delegate: Row {
             spacing: 6
@@ -416,7 +411,7 @@ KeyboardWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             text: {
               if (!wifi.ready) return "detecting backend..."
-              if (!wifi.powered) return "wifi off  ·  [p] to enable"
+              if (!wifi.powered) return "wifi off  ·  [o] to enable"
               return "no networks  ·  [s] to scan"
             }
             horizontalAlignment: Text.AlignHCenter
