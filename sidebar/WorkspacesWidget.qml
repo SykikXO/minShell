@@ -53,6 +53,14 @@ SidebarWidget {
       
       color: "transparent"
 
+      Rectangle {
+        width: 20
+        height: 20
+        anchors.centerIn: parent
+        radius: 10
+        color: Qt.rgba(0, 0, 0, 0.3)
+      }
+
       Text {
         anchors.centerIn: parent
         font.family: Theme.iconFont
