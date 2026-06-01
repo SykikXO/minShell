@@ -15,8 +15,8 @@ SidebarWidget {
   property var sink: Pipewire.defaultAudioSink
   
   content: Item {
-    width: 30
-    height: 30
+    width: 34
+    height: 34
     
     PwObjectTracker {
       objects: [root.sink]
@@ -26,7 +26,7 @@ SidebarWidget {
       id: audioIcon
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: Theme.sizeIcon
+      font.pixelSize: 20
       font.bold: true
       color: mouseArea.containsMouse ? Theme.c(15) : (root.sink && root.sink.audio && root.sink.audio.muted ? Theme.c(1) : Theme.textPrimary)
       text: {

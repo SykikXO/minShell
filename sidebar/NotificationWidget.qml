@@ -9,13 +9,13 @@ SidebarWidget {
   
   
   content: Item {
-    width: 30
-    height: 30
+    width: 34
+    height: 34
     
     Text {
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: 20
+      font.pixelSize: 22
       color: hover.hovered ? Theme.c(15) : Theme.textPrimary
       text: "notifications"
     }

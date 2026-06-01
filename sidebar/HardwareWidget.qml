@@ -36,13 +36,13 @@ SidebarWidget {
     // CPU
     Rectangle {
       id: cpuRect
-      width: 28; height: 28
+      width: 32; height: 32
       radius: 4
       color: cpuHover.hovered ? "white" : "transparent"
       Behavior on color { ColorAnimation { duration: 200 } }
       Text {
         anchors.centerIn: parent
-        font.family: Theme.iconFont; font.pixelSize: Theme.sizeIcon
+        font.family: Theme.iconFont; font.pixelSize: 20
         color: cpuHover.hovered ? "black" : getCpuColor(root.cpuVal)
         text: "developer_board"
       }
@@ -71,13 +71,13 @@ SidebarWidget {
     // Memory
     Rectangle {
       id: memRect
-      width: 28; height: 28
+      width: 32; height: 32
       radius: 4
       color: memHover.hovered ? "white" : "transparent"
       Behavior on color { ColorAnimation { duration: 200 } }
       Text {
         anchors.centerIn: parent
-        font.family: Theme.iconFont; font.pixelSize: Theme.sizeIcon
+        font.family: Theme.iconFont; font.pixelSize: 20
         color: memHover.hovered ? "black" : getMemColor(root.memVal)
         text: "memory"
       }
@@ -106,13 +106,13 @@ SidebarWidget {
     // Temperature
     Rectangle {
       id: tempRect
-      width: 28; height: 28
+      width: 32; height: 32
       radius: 4
       color: tempHover.hovered ? "white" : "transparent"
       Behavior on color { ColorAnimation { duration: 200 } }
       Text {
         anchors.centerIn: parent
-        font.family: Theme.iconFont; font.pixelSize: Theme.sizeIcon
+        font.family: Theme.iconFont; font.pixelSize: 20
         color: tempHover.hovered ? "black" : getTempColor(root.tempVal)
         text: "thermostat"
       }

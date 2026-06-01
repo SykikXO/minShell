@@ -60,7 +60,7 @@ SidebarWidget {
   content: Text {
     id: timeText
     font.family: Theme.barFont
-    font.pixelSize: 20
+    font.pixelSize: 22
     color: hover.hovered ? Theme.c(15) : Theme.textPrimary
     text: Qt.formatDateTime(new Date(), "hh:mm")
     horizontalAlignment: Text.AlignHCenter

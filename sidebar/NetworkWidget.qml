@@ -14,8 +14,8 @@ SidebarWidget {
   
   
   content: Item {
-    width: 30
-    height: 30
+    width: 34
+    height: 34
     
     WifiBackend { id: wifi }
     
@@ -23,7 +23,7 @@ SidebarWidget {
       id: icon
       anchors.centerIn: parent
         font.family: Theme.iconFont
-        font.pixelSize: Theme.sizeIcon
+        font.pixelSize: 20
         color: wifi.connectedSsid !== "" ? (hover.hovered ? Theme.c(15) : Theme.textPrimary) : Theme.c(1)
         text: {
           if (!wifi.powered) return "wifi_off"

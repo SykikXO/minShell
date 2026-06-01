@@ -44,14 +44,14 @@ SidebarWidget {
   }
 
   content: Item {
-    width: 30
-    height: 30
+    width: 34
+    height: 34
 
     Text {
       id: icon
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: Theme.sizeIcon
+      font.pixelSize: 20
       font.bold: true
       color: root.isConnected ? (hover.hovered ? Theme.c(15) : Theme.textPrimary) : Theme.c(1)
       text: !bt.powered ? "bluetooth_disabled" : (root.isConnected ? "bluetooth_connected" : "bluetooth")

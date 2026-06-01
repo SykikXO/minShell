@@ -55,7 +55,8 @@ SidebarWidget {
       Text {
         id: batIcon
         font.family: Theme.iconFont
-        font.pixelSize: 20
+        font.pixelSize: 24
+        y: (parent.height - height) / 2
         color: {
           if (isCritical && !isCharging) return blinkState ? Theme.c(3) : "black";
           if (isCharging && percentage > 80) return "black";
@@ -78,10 +79,10 @@ SidebarWidget {
         }
       }
       Text {
-        anchors.verticalCenter: parent.verticalCenter
         font.family: Theme.barFont
-        font.pixelSize: 15
+        font.pixelSize: 16
         font.bold: true
+        y: (parent.height - height) / 2
         color: {
           if (isCritical && !isCharging) return blinkState ? Theme.c(3) : "black";
           if (isCharging && percentage > 80) return "black";
@@ -90,6 +91,7 @@ SidebarWidget {
         }
         text: root.bat ? Math.round(root.bat.percentage * 100)+"%" : "100%"
       }
+      Item { width: 4; height: 1 }
     }
 
     Text {

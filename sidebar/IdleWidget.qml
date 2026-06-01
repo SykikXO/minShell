@@ -12,13 +12,13 @@ SidebarWidget {
   property bool activated: false
   
   content: Item {
-    width: 30
-    height: 30
+    width: 34
+    height: 34
     
     Text {
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: 20
+      font.pixelSize: 22
       color: hover.hovered ? Theme.c(15) : (root.activated ? Theme.c(4) : Theme.textPrimary)
       text: root.activated ? "visibility" : "visibility_off"
     }

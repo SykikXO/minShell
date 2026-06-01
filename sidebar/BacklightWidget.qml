@@ -15,14 +15,14 @@ SidebarWidget {
   property real brightnessVal: 0
   
   content: Item {
-    width: 30
-    height: 30
+    width: 34
+    height: 34
     
     Text {
       id: brightnessIcon
       anchors.centerIn: parent
       font.family: Theme.iconFont
-      font.pixelSize: Theme.sizeIcon
+      font.pixelSize: 20
       color: mouseArea.containsMouse ? Theme.c(15) : Theme.textPrimary
       text: root.brightnessVal > 70 ? "brightness_high" : (root.brightnessVal > 30 ? "brightness_medium" : "brightness_low")
     }

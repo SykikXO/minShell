@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import "../"
 
@@ -18,31 +17,49 @@ PanelWindow {
 
   Behavior on color { ColorAnimation { duration: 500 } }
 
-  RowLayout {
-    id: row
-    width: parent.width
-    height: 40
-    spacing: 4
+  Item {
+    anchors.fill: parent
 
-    Item { implicitWidth: 6; Layout.alignment: Qt.AlignVCenter }
+    Row {
+      id: leftGroup
+      anchors.left: parent.left
+      anchors.leftMargin: 6
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 4
 
-    ClockWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    NotificationWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    HardwareWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+      ClockWidget { height: 34 }
+      NotificationWidget { height: 34 }
+      HardwareWidget { height: 34 }
+    }
 
-    Item { Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
+    Item {
+      id: centerAnchor
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.horizontalCenterOffset: 0
+      anchors.verticalCenter: parent.verticalCenter
 
-    WorkspacesWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+      Row {
+        id: centerGroup
+        anchors.centerIn: parent
+        spacing: 4
 
-    Item { Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
+        WorkspacesWidget { height: 34 }
+      }
+    }
 
-    NetworkWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    BluetoothWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    AudioWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    BacklightWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    IdleWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
-    BatteryWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    Row {
+      id: rightGroup
+      anchors.right: parent.right
+      anchors.rightMargin: 6
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 4
 
-    Item { implicitWidth: 6; Layout.alignment: Qt.AlignVCenter }
+      NetworkWidget { height: 34 }
+      BluetoothWidget { height: 34 }
+      AudioWidget { height: 34 }
+      BacklightWidget { height: 34 }
+      IdleWidget { height: 34 }
+      BatteryWidget { height: 34 }
+    }
   }
 }
