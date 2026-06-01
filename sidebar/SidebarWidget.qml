@@ -9,9 +9,8 @@ Rectangle {
   property color bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
   
   
-  width: layout.childrenRect.width + 10
-  height: parent.height - 10
-  anchors.verticalCenter: parent.verticalCenter
+  implicitWidth: layout.childrenRect.width + 10
+  width: implicitWidth
   
   color: bgColor
   radius: 4
