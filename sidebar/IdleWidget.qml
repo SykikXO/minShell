@@ -12,8 +12,8 @@ SidebarWidget {
   property bool activated: false
   
   content: Item {
-    width: parent.width
-    height: 30
+    width: childrenRect.width
+    height: childrenRect.height
     
     Text {
       anchors.centerIn: parent

@@ -17,9 +17,8 @@ PopupWindow {
 
   anchor {
     item: targetItem
-    edges: Qt.RightEdge
-    margins.left: Theme.tooltipOffset
-    margins.top: -implicitHeight
+    edges: Qt.BottomEdge
+    margins.top: 4
   }
 
   Rectangle {

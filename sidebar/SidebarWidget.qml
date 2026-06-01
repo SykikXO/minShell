@@ -9,9 +9,9 @@ Rectangle {
   property color bgColor: Qt.rgba(Theme.c(2).r, Theme.c(2).g, Theme.c(2).b, 0.7)
   
   
-  width: parent.width - 10
-  height: layout.implicitHeight + 10
-  anchors.horizontalCenter: parent.horizontalCenter
+  width: layout.implicitWidth + 10
+  height: parent.height - 10
+  anchors.verticalCenter: parent.verticalCenter
   
   color: bgColor
   radius: 4
@@ -19,7 +19,6 @@ Rectangle {
   Column {
     id: layout
     anchors.centerIn: parent
-    width: parent.width
     spacing: 4
   }
 

@@ -15,8 +15,8 @@ SidebarWidget {
   property real brightnessVal: 0
   
   content: Item {
-    width: parent.width
-    height: 30
+    width: childrenRect.width
+    height: childrenRect.height
     
     Text {
       id: brightnessIcon

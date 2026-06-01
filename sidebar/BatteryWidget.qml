@@ -45,18 +45,14 @@ SidebarWidget {
   }
   
   content: Item {
-    width: parent.width
-    height: 44
-    
-    Column {
+    Row {
       visible: !root.showTime
       anchors.centerIn: parent
-      spacing: 2
+      spacing: 4
       Text {
         id: batIcon
-        anchors.horizontalCenter: parent.horizontalCenter
         font.family: Theme.iconFont
-        font.pixelSize: 24
+        font.pixelSize: 20
         color: {
           if (isCritical && !isCharging) return blinkState ? Theme.c(3) : "black";
           if (isCharging && percentage > 80) return "black";
@@ -79,7 +75,7 @@ SidebarWidget {
         }
       }
       Text {
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
         font.family: Theme.barFont
         font.pixelSize: 15
         font.bold: true
@@ -105,13 +101,12 @@ SidebarWidget {
         return Theme.white;
       }
       horizontalAlignment: Text.AlignHCenter
-      lineHeight: 0.9
       text: {
         let sec = root.isCharging ? (root.bat ? root.bat.timeToFull : 0) : (root.bat ? root.bat.timeToEmpty : 0);
         if (!sec) return "---";
         let h = Math.floor(sec / 3600);
         let m = Math.floor((sec % 3600) / 60);
-        if (h > 0) return h + "h\n" + m + "m";
+        if (h > 0) return h + "h " + m + "m";
         return m + "m";
       }
     }

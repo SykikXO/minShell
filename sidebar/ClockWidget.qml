@@ -8,7 +8,6 @@ SidebarWidget {
   id: root
   bgColor: Qt.rgba(Theme.c(9).r, Theme.c(9).g, Theme.c(9).b, 0.8)
 
-  // Helper to generate calendar text
   function getCalendarText() {
     let d = new Date();
     let month = d.getMonth();
@@ -54,28 +53,19 @@ SidebarWidget {
     repeat: true
     onTriggered: {
       let d = new Date();
-      timeText.text = Qt.formatDateTime(d, "hh\nmm");
+      timeText.text = Qt.formatDateTime(d, "hh:mm");
     }
   }
 
   content: Item {
-    width: parent.width
-    height: col.height
-
-    Column {
-      id: col
+    Text {
+      id: timeText
       anchors.centerIn: parent
-      spacing: 2
-      
-      Text {
-        id: timeText
-        anchors.horizontalCenter: parent.horizontalCenter
-        font.family: Theme.barFont
-        font.pixelSize: 22
-        color: hover.hovered ? Theme.c(15) : Theme.textPrimary
-        text: Qt.formatDateTime(new Date(), "hh\nmm")
-        horizontalAlignment: Text.AlignHCenter
-      }
+      font.family: Theme.barFont
+      font.pixelSize: 16
+      color: hover.hovered ? Theme.c(15) : Theme.textPrimary
+      text: Qt.formatDateTime(new Date(), "hh:mm")
+      horizontalAlignment: Text.AlignHCenter
     }
     
     HoverHandler { id: hover }
@@ -83,7 +73,7 @@ SidebarWidget {
     SidebarTooltip {
       text: root.getCalendarText()
       visible: hover.hovered
-      targetItem: col
+      targetItem: timeText
     }
   }
 }

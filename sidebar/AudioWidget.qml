@@ -15,8 +15,8 @@ SidebarWidget {
   property var sink: Pipewire.defaultAudioSink
   
   content: Item {
-    width: parent.width
-    height: 30
+    width: childrenRect.width
+    height: childrenRect.height
     
     PwObjectTracker {
       objects: [root.sink]

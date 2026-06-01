@@ -30,15 +30,13 @@ SidebarWidget {
     return Theme.textPrimary;
   }
 
-  content: Column {
-    width: parent.width
-    spacing: 8
-    
+  content: Row {
+    spacing: 2
+
     // CPU
     Rectangle {
       id: cpuRect
-      width: parent.width - 4; height: 30
-      anchors.horizontalCenter: parent.horizontalCenter
+      width: 28; height: 28
       radius: 4
       color: cpuHover.hovered ? "white" : "transparent"
       Behavior on color { ColorAnimation { duration: 200 } }
@@ -73,8 +71,7 @@ SidebarWidget {
     // Memory
     Rectangle {
       id: memRect
-      width: parent.width - 4; height: 30
-      anchors.horizontalCenter: parent.horizontalCenter
+      width: 28; height: 28
       radius: 4
       color: memHover.hovered ? "white" : "transparent"
       Behavior on color { ColorAnimation { duration: 200 } }
@@ -109,8 +106,7 @@ SidebarWidget {
     // Temperature
     Rectangle {
       id: tempRect
-      width: parent.width - 4; height: 30
-      anchors.horizontalCenter: parent.horizontalCenter
+      width: 28; height: 28
       radius: 4
       color: tempHover.hovered ? "white" : "transparent"
       Behavior on color { ColorAnimation { duration: 200 } }

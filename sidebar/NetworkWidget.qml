@@ -14,20 +14,16 @@ SidebarWidget {
   
   
   content: Item {
-    width: parent.width
-    height: 30
+    width: childrenRect.width
+    height: childrenRect.height
     
     WifiBackend { id: wifi }
     
-    Column {
+    Text {
+      id: icon
       anchors.centerIn: parent
-      spacing: 2
-      
-      Text {
-        id: icon
-        anchors.horizontalCenter: parent.horizontalCenter
-        font.family: Theme.iconFont
-        font.pixelSize: Theme.sizeIcon
+      font.family: Theme.iconFont
+      font.pixelSize: Theme.sizeIcon
         color: wifi.connectedSsid !== "" ? (hover.hovered ? Theme.c(15) : Theme.textPrimary) : Theme.c(1)
         text: {
           if (!wifi.powered) return "wifi_off"
@@ -40,7 +36,6 @@ SidebarWidget {
           return "signal_wifi_0_bar"
         }
       }
-    }
     
     HoverHandler { id: hover }
     
