@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import "../"
 
@@ -17,42 +18,31 @@ PanelWindow {
 
   Behavior on color { ColorAnimation { duration: 500 } }
 
-  Row {
+  RowLayout {
     id: row
+    width: parent.width
     height: 40
     spacing: 4
 
-    Item { width: 6; height: 1; y: (row.height - height) / 2 }
+    Item { implicitWidth: 6; Layout.alignment: Qt.AlignVCenter }
 
-    ClockWidget { height: 30; y: (row.height - height) / 2 }
-    NotificationWidget { height: 30; y: (row.height - height) / 2 }
+    ClockWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    NotificationWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    HardwareWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
 
-    Rectangle {
-      width: 1; height: 20; color: Theme.borderColor
-      y: (row.height - height) / 2
-    }
+    Item { Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
 
-    WorkspacesWidget { height: 30; y: (row.height - height) / 2 }
+    WorkspacesWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
 
-    Rectangle {
-      width: 1; height: 20; color: Theme.borderColor
-      y: (row.height - height) / 2
-    }
+    Item { Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
 
-    NetworkWidget { height: 30; y: (row.height - height) / 2 }
-    BluetoothWidget { height: 30; y: (row.height - height) / 2 }
-    AudioWidget { height: 30; y: (row.height - height) / 2 }
-    BacklightWidget { height: 30; y: (row.height - height) / 2 }
-    HardwareWidget { height: 30; y: (row.height - height) / 2 }
+    NetworkWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    BluetoothWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    AudioWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    BacklightWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    IdleWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
+    BatteryWidget { Layout.preferredHeight: 30; Layout.alignment: Qt.AlignVCenter }
 
-    Rectangle {
-      width: 1; height: 20; color: Theme.borderColor
-      y: (row.height - height) / 2
-    }
-
-    IdleWidget { height: 30; y: (row.height - height) / 2 }
-    BatteryWidget { height: 30; y: (row.height - height) / 2 }
-
-    Item { width: 6; height: 1; y: (row.height - height) / 2 }
+    Item { implicitWidth: 6; Layout.alignment: Qt.AlignVCenter }
   }
 }

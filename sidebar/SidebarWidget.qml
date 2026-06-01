@@ -10,7 +10,6 @@ Rectangle {
   
   
   implicitWidth: layout.childrenRect.width + 10
-  width: implicitWidth
   
   color: bgColor
   radius: 4
