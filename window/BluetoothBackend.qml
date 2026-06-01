@@ -300,10 +300,17 @@ QtObject {
     onTriggered: backend._refreshBattery()
   }
 
+  // ── Deferred battery fetch: onConnectedChanged fires before connectedDeviceAddress is set ──
+  property var _batteryRefreshDelayed: Timer {
+    interval: 500
+    repeat: false
+    onTriggered: backend._refreshBattery()
+  }
+
   onConnectedChanged: {
     if (backend.connected) {
       backend._batteryTimer.running = true
-      backend._refreshBattery()
+      backend._batteryRefreshDelayed.running = true
     } else {
       backend.connectedDeviceBattery = ""
       backend._batteryTimer.running = false
