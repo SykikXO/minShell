@@ -45,6 +45,9 @@ SidebarWidget {
   }
   
   content: Item {
+    width: childrenRect.width
+    height: childrenRect.height
+
     Row {
       visible: !root.showTime
       anchors.centerIn: parent

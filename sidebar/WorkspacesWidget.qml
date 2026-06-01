@@ -47,7 +47,6 @@ SidebarWidget {
           }
           return false;
         }
-        property bool isInactive: !isActive && !isCurrent
 
         width: 24
         height: 24

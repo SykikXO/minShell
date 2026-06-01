@@ -15,8 +15,8 @@ SidebarWidget {
   property real brightnessVal: 0
   
   content: Item {
-    width: childrenRect.width
-    height: childrenRect.height
+    width: 30
+    height: 30
     
     Text {
       id: brightnessIcon
@@ -29,7 +29,7 @@ SidebarWidget {
     
     MouseArea {
       id: mouseArea
-      anchors.fill: parent
+      width: parent.width; height: parent.height
       hoverEnabled: true
       onClicked: {
         procClick.running = true;

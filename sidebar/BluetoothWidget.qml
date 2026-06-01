@@ -44,8 +44,8 @@ SidebarWidget {
   }
 
   content: Item {
-    width: childrenRect.width
-    height: childrenRect.height
+    width: 30
+    height: 30
 
     Text {
       id: icon

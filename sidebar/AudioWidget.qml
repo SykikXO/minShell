@@ -15,8 +15,8 @@ SidebarWidget {
   property var sink: Pipewire.defaultAudioSink
   
   content: Item {
-    width: childrenRect.width
-    height: childrenRect.height
+    width: 30
+    height: 30
     
     PwObjectTracker {
       objects: [root.sink]
@@ -40,7 +40,7 @@ SidebarWidget {
     
     MouseArea {
       id: mouseArea
-      anchors.fill: parent
+      width: parent.width; height: parent.height
       hoverEnabled: true
       onClicked: proc.running = true
       onWheel: (wheel) => {
