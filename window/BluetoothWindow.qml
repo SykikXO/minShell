@@ -49,8 +49,7 @@ KeyboardWindow {
         connected: d.connected,
         paired: d.paired,
         trusted: d.trusted,
-        icon: d.icon,
-        battery: d.connected && d.address === bt.connectedDeviceAddress ? bt.connectedDeviceBattery : ""
+        icon: d.icon
       })
     }
     devs.sort((a, b) => {
