@@ -25,7 +25,7 @@ PanelWindow {
       anchors.left: parent.left
       anchors.leftMargin: 6
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 4
+      spacing: 6
 
       ClockWidget { height: 34 }
       NotificationWidget { height: 34 }
@@ -41,7 +41,7 @@ PanelWindow {
       Row {
         id: centerGroup
         anchors.centerIn: parent
-        spacing: 4
+        spacing: 6
 
         WorkspacesWidget { height: 34 }
       }
@@ -52,7 +52,7 @@ PanelWindow {
       anchors.right: parent.right
       anchors.rightMargin: 6
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 4
+      spacing: 6
 
       NetworkWidget { height: 34 }
       BluetoothWidget { height: 34 }
