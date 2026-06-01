@@ -9,7 +9,7 @@ QtObject {
     // ── Fonts ──
     property string iconFont: "Material Symbols Rounded"
     property string monoFont: "Iosevka Nerd Font Mono"
-    property string barFont: "Input Mono Condensed"
+    property string barFont: "Iosevka Nerd Font Mono"
 
     // ── Helper to access numbered colors ──
     function c(num) {

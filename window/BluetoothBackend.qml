@@ -14,6 +14,7 @@ QtObject {
   property bool   connected: false
   property string connectedDeviceName: ""
   property string connectedDeviceAddress: ""
+  property string connectedDeviceBattery: ""
 
   property ListModel devices: ListModel {}
 
@@ -265,5 +266,47 @@ QtObject {
     interval: 800
     repeat: false
     onTriggered: backend._rebuildAll()
+  }
+
+  // ── Battery polling ──
+  function _refreshBattery() {
+    if (!backend.connected || !backend.connectedDeviceAddress) return
+    _batteryProc.command = [
+      "bash", "-c",
+      "bluetoothctl info " + backend.connectedDeviceAddress +
+      " 2>/dev/null | grep 'Battery Percentage' | sed 's/.*(\\([0-9]*\\)).*/\\1/'"
+    ]
+    _batteryProc.running = true
+  }
+
+  property var _batteryProc: Process {
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var t = this.text.trim()
+        if (t.length > 0) {
+          backend.connectedDeviceBattery = t + "%"
+        } else {
+          backend.connectedDeviceBattery = ""
+        }
+      }
+    }
+  }
+
+  property var _batteryTimer: Timer {
+    interval: 600000
+    running: false
+    repeat: true
+    onTriggered: backend._refreshBattery()
+  }
+
+  onConnectedChanged: {
+    if (backend.connected) {
+      backend._batteryTimer.running = true
+      backend._refreshBattery()
+    } else {
+      backend.connectedDeviceBattery = ""
+      backend._batteryTimer.running = false
+    }
   }
 }

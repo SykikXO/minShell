@@ -49,7 +49,8 @@ KeyboardWindow {
         connected: d.connected,
         paired: d.paired,
         trusted: d.trusted,
-        icon: d.icon
+        icon: d.icon,
+        battery: d.connected && d.address === bt.connectedDeviceAddress ? bt.connectedDeviceBattery : ""
       })
     }
     devs.sort((a, b) => {
@@ -333,6 +334,22 @@ KeyboardWindow {
           text: bt.connected ? bt.connectedDeviceName : "no device connected"
         }
 
+        Text {
+          visible: bt.connected && bt.connectedDeviceBattery !== ""
+          font.pixelSize: Theme.sizeStatusText
+          font.family: Theme.iconFont
+          color: Theme.green
+          text: btWindow.batteryIcon(parseInt(bt.connectedDeviceBattery))
+        }
+
+        Text {
+          visible: bt.connected && bt.connectedDeviceBattery !== ""
+          font.pixelSize: Theme.sizeStatusText
+          font.family: Theme.monoFont
+          color: Theme.green
+          text: bt.connectedDeviceBattery
+        }
+
         Rectangle {
           visible: bt.connected
           width: 8; height: 8
@@ -470,6 +487,22 @@ KeyboardWindow {
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Behavior on color { ColorAnimation { duration: 120 } }
+              }
+
+              Text {
+                visible: modelData.connected && modelData.battery !== ""
+                font.pixelSize: 12
+                font.family: Theme.iconFont
+                color: Theme.green
+                text: btWindow.batteryIcon(parseInt(modelData.battery))
+              }
+
+              Text {
+                visible: modelData.connected && modelData.battery !== ""
+                font.pixelSize: Theme.sizeListText
+                font.family: Theme.monoFont
+                color: Theme.green
+                text: modelData.battery
               }
 
               Row {
