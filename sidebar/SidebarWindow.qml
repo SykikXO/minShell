@@ -19,13 +19,13 @@ PanelWindow {
 
   Item {
     anchors.fill: parent
-
+      anchors.topMargin: 3
     Row {
       id: leftGroup
       anchors.left: parent.left
-      anchors.leftMargin: 6
+      anchors.leftMargin: 5
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 6
+      spacing: 5
 
       ClockWidget { height: 34 }
       NotificationWidget { height: 34 }
@@ -37,22 +37,21 @@ PanelWindow {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.horizontalCenterOffset: 0
       anchors.verticalCenter: parent.verticalCenter
-
       Row {
         id: centerGroup
         anchors.centerIn: parent
-        spacing: 6
-
-        WorkspacesWidget { height: 34 }
+        WorkspacesWidget {
+          height: 34
+        }
       }
     }
 
     Row {
       id: rightGroup
       anchors.right: parent.right
-      anchors.rightMargin: 6
+      anchors.rightMargin: 5
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 6
+      spacing: 5
 
       NetworkWidget { height: 34 }
       BluetoothWidget { height: 34 }

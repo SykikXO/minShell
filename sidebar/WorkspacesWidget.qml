@@ -31,7 +31,7 @@ SidebarWidget {
   }
 
   content: Row {
-    spacing: 2
+    spacing: 6
 
     Repeater {
       model: root.maxWorkspaceId
