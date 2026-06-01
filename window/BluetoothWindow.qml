@@ -24,7 +24,8 @@ KeyboardWindow {
   overlayKeybinds: [
     {k: "j/k", d: "navigate"},
     {k: "g", d: "first / last"},
-    {k: "c/enter", d: "connect / disconnect"},
+    {k: "c/enter", d: "connect"},
+    {k: "d", d: "disconnect"},
     {k: "t", d: "toggle trust"},
     {k: "p", d: "toggle pair"},
     {k: "x", d: "remove device"},
@@ -370,6 +371,7 @@ KeyboardWindow {
         Repeater {
           model: [
             {k: "c", d: "conn"},
+            {k: "d", d: "disc"},
             {k: "t", d: "trust"},
             {k: "p", d: "pair"},
             {k: "x", d: "remove"},
