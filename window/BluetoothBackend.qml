@@ -294,7 +294,7 @@ QtObject {
   }
 
   property var _batteryTimer: Timer {
-    interval: 600000
+    interval: 60000
     running: false
     repeat: true
     onTriggered: backend._refreshBattery()

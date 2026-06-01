@@ -186,18 +186,19 @@ KeyboardWindow {
           }
           event.accepted = true
           break
+        case Qt.Key_D:{
+            if(dev.connected) bt.disconnectDevice(dev.address)
+            event.accepted = true
+            break
+          }
         case Qt.Key_C:
         case Qt.Key_Return:
         case Qt.Key_Enter:
           if (dev) {
-            if (dev.connected) {
-              bt.disconnectDevice(dev.address)
-            } else {
               bt.connectDevice(dev.address)
               bt.trustDevice(dev.address, true)
               saveRecent(dev.address)
               if (hideOnConnect) btWindow.visible = false
-            }
           }
           event.accepted = true
           break
@@ -487,22 +488,6 @@ KeyboardWindow {
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Behavior on color { ColorAnimation { duration: 120 } }
-              }
-
-              Text {
-                visible: modelData.connected && modelData.battery !== ""
-                font.pixelSize: 12
-                font.family: Theme.iconFont
-                color: Theme.green
-                text: btWindow.batteryIcon(parseInt(modelData.battery))
-              }
-
-              Text {
-                visible: modelData.connected && modelData.battery !== ""
-                font.pixelSize: Theme.sizeListText
-                font.family: Theme.monoFont
-                color: Theme.green
-                text: modelData.battery
               }
 
               Row {
