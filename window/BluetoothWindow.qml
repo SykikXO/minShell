@@ -247,6 +247,7 @@ KeyboardWindow {
           break
         case Qt.Key_Q:
         case Qt.Key_Escape:
+        case Qt.Key_Space:
           btWindow.visible = false
           event.accepted = true
           break
