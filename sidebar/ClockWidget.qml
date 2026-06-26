@@ -55,6 +55,7 @@ SidebarWidget {
     onTriggered: {
       let d = new Date();
       timeText.text = Qt.formatDateTime(d, "hh\nmm");
+      calendarTooltip.text = root.getCalendarText();
     }
   }
 
@@ -81,6 +82,7 @@ SidebarWidget {
     HoverHandler { id: hover }
 
     SidebarTooltip {
+      id: calendarTooltip
       text: root.getCalendarText()
       visible: hover.hovered
       targetItem: col
